@@ -1,17 +1,54 @@
 package com.example.mealshare;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class RegisterActivity extends AppCompatActivity {
+    private static final String DEFAULT_PROFILE_PIC_URL = "https://firebasestorage.googleapis.com/v0/b/mealshare-76ea8.firebasestorage.app/o/profile_pic.png?alt=media&token=2837c28e-a65f-4ee9-a286-1cc788f6f8ef";
+    private FirebaseAuth auth;
+    private EditText register_email, register_password, register_name, register_username;
+    private Button register_btn;
+
+    private CircleImageView profile_pic;
+    private TextView addPhotoTV;
+    private FirebaseFirestore db;
+    private FirebaseStorage storage;
+    private Uri mImageUri = null;
+    private ActivityResultLauncher<Intent> mImagePickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,5 +69,175 @@ public class RegisterActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        // ALL firebase services initialisation
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
+
+        // ALL views initialisation
+        register_email = findViewById(R.id.register_email);
+        register_name = findViewById(R.id.register_name);
+        register_username = findViewById(R.id.register_username);
+        register_password = findViewById(R.id.register_password);
+        register_btn = findViewById(R.id.register_btn);
+
+        // Views for profile picture
+        profile_pic = findViewById(R.id.profile_pic);
+        addPhotoTV = findViewById(R.id.addPhotoTV);
+
+        mImagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                        if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
+                            mImageUri = result.getData().getData();
+                            profile_pic.setImageURI(mImageUri);
+                        }
+        });
+
+        View.OnClickListener photoClickListener = v -> openGallery();
+        profile_pic.setOnClickListener(photoClickListener);
+        addPhotoTV.setOnClickListener(photoClickListener);
+
+        register_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                registerUser();
+            }
+        });
     }
+
+    private void openGallery(){
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        mImagePickerLauncher.launch(galleryIntent);
+    }
+
+    private void registerUser(){
+        String userEmail = register_email.getText().toString().trim();
+        String userPassword = register_password.getText().toString().trim();
+        String userName = register_name.getText().toString().trim();
+        String userUsername = register_username.getText().toString().trim().toLowerCase();
+
+        // Full Validation
+        if(TextUtils.isEmpty(userName)){
+            Toast.makeText(this, "Full Name cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (TextUtils.isEmpty(userUsername)) {
+            register_username.setError("Username cannot be empty");
+            return;
+        }
+        if (TextUtils.isEmpty(userEmail)) {
+            register_email.setError("Email cannot be empty");
+            return;
+        }
+        if (TextUtils.isEmpty(userPassword)) {
+            register_password.setError("Password cannot be empty");
+            return;
+        }
+        if(userPassword.length()<6){
+            register_password.setError("Password must be at least 6 characters long");
+            return;
+        }
+
+        Toast.makeText(this, "Registering User...", Toast.LENGTH_SHORT).show();
+
+        checkUsernameAndRegister(userName, userUsername, userEmail, userPassword);
+    }
+
+    private void checkUsernameAndRegister(String userName, String userUsername, String userEmail, String userPassword){
+        DocumentReference usernameRef = db.collection("usernames").document(userUsername);
+        usernameRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if(document.exists()){
+                    register_username.setError("Username already exists");
+                    Toast.makeText(this, "Username already exists", Toast.LENGTH_SHORT).show();
+                }else{
+                    createUserInAuth(userName, userUsername, userEmail, userPassword);}
+            }else{
+                Toast.makeText(this, "Error checking username", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void createUserInAuth(String userName, String userUsername, String userEmail, String userPassword){
+        auth.createUserWithEmailAndPassword(userEmail, userPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if(task.isSuccessful()){
+                    FirebaseUser firebaseUser = auth.getCurrentUser();
+                    if (mImageUri != null) {
+                        // User *did* pick a photo, so upload it
+                        uploadImageAndSaveData(firebaseUser, userName, userUsername);
+                    } else {
+                        // User *did NOT* pick a photo, so use the default URL
+                        // We skip the upload steps and go straight to saving
+                        saveUserDataToFirestore(firebaseUser, userName, userUsername, DEFAULT_PROFILE_PIC_URL);
+                    }
+                }else{
+                    Toast.makeText(RegisterActivity.this, "Registration failed" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void uploadImageAndSaveData(FirebaseUser firebaseUser, String name, String username){
+        String uid = firebaseUser.getUid();
+        StorageReference fileRef = storage.getReference().child("profile_images/" + uid + ".jpg");
+
+        fileRef.putFile(mImageUri)
+                .addOnSuccessListener(taskSnapshot -> {
+                    getDownloadUrlAndSaveData(fileRef, firebaseUser, name, username);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(RegisterActivity.this, "Image upload failed" + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    private void getDownloadUrlAndSaveData(StorageReference fileRef, FirebaseUser firebaseUser, String name, String username){
+        fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+            String profileImageUrl = uri.toString();
+            // Save data to Firestore
+            saveUserDataToFirestore(firebaseUser, name, username, profileImageUrl);
+        })
+        .addOnFailureListener(e -> {
+                    Toast.makeText(RegisterActivity.this, "Failed to get image URL : " + e.getMessage(), Toast.LENGTH_LONG).show();
+        });
+    }
+
+    private void saveUserDataToFirestore(FirebaseUser firebaseUser, String name, String username, String profileImageUrl){
+        String uid = firebaseUser.getUid();
+        String email = firebaseUser.getEmail();
+
+        WriteBatch batch = db.batch();
+
+        // 1. Main user document in 'users' collection
+        DocumentReference userRef = db.collection("users").document(uid);
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("uid", uid);
+        userData.put("name", name);
+        userData.put("username", username);
+        userData.put("email", email);
+        userData.put("profileImageUrl", profileImageUrl);
+        batch.set(userRef, userData);
+
+        // 2. Username lookup document in 'usernames' collection
+        DocumentReference usernameRef = db.collection("usernames").document(username);
+        Map<String, Object> usernameData = new HashMap<>();
+        usernameData.put("uid", uid);
+        batch.set(usernameRef, usernameData);
+
+        batch.commit().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                finish();
+            }else{
+                Toast.makeText(RegisterActivity.this, "Error saving user data:" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
 }

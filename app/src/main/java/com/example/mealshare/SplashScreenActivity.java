@@ -24,7 +24,7 @@ public class SplashScreenActivity extends AppCompatActivity {
             return insets;
         });
 
-        boolean loggedIn = true;
+        boolean loggedIn = false;
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             Intent intentOldUser = new Intent(SplashScreenActivity.this, MainActivity.class);
