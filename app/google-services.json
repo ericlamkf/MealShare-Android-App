@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "910753056694",
+    "project_id": "mealshare-76ea8",
+    "storage_bucket": "mealshare-76ea8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:910753056694:android:73c808e9f085b04b5c2317",
+        "android_client_info": {
+          "package_name": "com.example.mealshare"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzx3U_pUanqiSlztg2xUTYDzu3nZy_VjU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
