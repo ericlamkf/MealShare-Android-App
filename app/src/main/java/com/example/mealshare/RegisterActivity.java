@@ -1,6 +1,7 @@
 package com.example.mealshare;
 
 import android.content.Intent;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -8,6 +9,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,7 +44,7 @@ public class RegisterActivity extends AppCompatActivity {
     private FirebaseAuth auth;
     private EditText register_email, register_password, register_name, register_username;
     private Button register_btn;
-
+    private ImageView btnRemovePic;
     private CircleImageView profile_pic;
     private TextView addPhotoTV;
     private FirebaseFirestore db;
@@ -81,6 +83,7 @@ public class RegisterActivity extends AppCompatActivity {
         register_username = findViewById(R.id.register_username);
         register_password = findViewById(R.id.register_password);
         register_btn = findViewById(R.id.register_btn);
+        btnRemovePic = findViewById(R.id.BtnRemovePic);
 
         // Views for profile picture
         profile_pic = findViewById(R.id.profile_pic);
@@ -92,6 +95,8 @@ public class RegisterActivity extends AppCompatActivity {
                         if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
                             mImageUri = result.getData().getData();
                             profile_pic.setImageURI(mImageUri);
+                            btnRemovePic.setVisibility(View.VISIBLE);
+                            addPhotoTV.setVisibility(View.GONE);
                         }
         });
 
@@ -105,6 +110,21 @@ public class RegisterActivity extends AppCompatActivity {
                 registerUser();
             }
         });
+
+        btnRemovePic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                removePic();
+            }
+        });
+
+    }
+
+    private void removePic() {
+        mImageUri = null;
+        profile_pic.setImageResource(R.drawable.profile_pic);
+        btnRemovePic.setVisibility(View.GONE);
+        addPhotoTV.setVisibility(View.VISIBLE);
     }
 
     private void openGallery(){
@@ -176,7 +196,7 @@ public class RegisterActivity extends AppCompatActivity {
                         saveUserDataToFirestore(firebaseUser, userName, userUsername, DEFAULT_PROFILE_PIC_URL);
                     }
                 }else{
-                    Toast.makeText(RegisterActivity.this, "Registration failed" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegisterActivity.this, "Registration failed. " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -191,6 +211,7 @@ public class RegisterActivity extends AppCompatActivity {
                     getDownloadUrlAndSaveData(fileRef, firebaseUser, name, username);
                 })
                 .addOnFailureListener(e -> {
+                    firebaseUser.delete();
                     Toast.makeText(RegisterActivity.this, "Image upload failed" + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
@@ -202,7 +223,9 @@ public class RegisterActivity extends AppCompatActivity {
             saveUserDataToFirestore(firebaseUser, name, username, profileImageUrl);
         })
         .addOnFailureListener(e -> {
-                    Toast.makeText(RegisterActivity.this, "Failed to get image URL : " + e.getMessage(), Toast.LENGTH_LONG).show();
+            fileRef.delete(); // Delete the orphaned file
+            firebaseUser.delete(); // Delete the Auth account
+            Toast.makeText(RegisterActivity.this, "Failed to get image URL : " + e.getMessage(), Toast.LENGTH_LONG).show();
         });
     }
 
@@ -235,6 +258,17 @@ public class RegisterActivity extends AppCompatActivity {
                 finish();
             }else{
                 Toast.makeText(RegisterActivity.this, "Error saving user data:" + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+
+                // Delete user from Firebase
+                firebaseUser.delete()
+                        .addOnCompleteListener(deleteTask -> {
+                            if(deleteTask.isSuccessful()){
+                                Toast.makeText(RegisterActivity.this, "Account deleted successfully.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                // This indicates a serious failure, maybe log it to Crashlytics
+                                Toast.makeText(RegisterActivity.this, "Failed to delete account from Auth.", Toast.LENGTH_LONG).show();
+                            }
+                        });
             }
         });
     }
