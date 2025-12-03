@@ -1,15 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".HomeFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:id="@+id/welcomeText"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/frameLayout2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="This is Home Page" />
+        tools:context=".HomeFragment">
 
-</FrameLayout>
+        <TextView
+            android:id="@+id/WelcomeHome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="36dp"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Welcome,"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/HomeName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="-5dp"
+            android:fontFamily="@font/poppins_bold"
+            android:text="loading..."
+            android:textColor="#0F0F0F"
+            android:textSize="32sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/WelcomeHome" />
+
+        <ImageView
+            android:id="@+id/bellicon"
+            android:layout_width="20dp"
+            android:layout_height="25dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/bell_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/imageView6"
+            android:layout_width="375dp"
+            android:layout_height="208dp"
+            android:layout_marginTop="124dp"
+            android:src="@drawable/home_banner"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.555"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/bannerTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="28dp"
+            android:layout_marginTop="28dp"
+            android:fontFamily="@font/karla_extrabold"
+            android:text="Start Sharing\nYour Food Now."
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            app:layout_constraintStart_toStartOf="@+id/imageView6"
+            app:layout_constraintTop_toTopOf="@+id/imageView6" />
+
+        <Button
+            android:id="@+id/BtnToAdd"
+            android:layout_width="166dp"
+            android:layout_height="45dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#FEAA3E"
+            android:fontFamily="@font/poppins_medium"
+            android:text="Donate Now"
+            android:textAlignment="viewStart"
+            android:textColor="#2C2C2C"
+            app:cornerRadius="10dp"
+            app:layout_constraintStart_toStartOf="@+id/imageView6"
+            app:layout_constraintTop_toBottomOf="@+id/bannerTitle" />
+
+        <ImageView
+            android:id="@+id/imageView7"
+            android:layout_width="26dp"
+            android:layout_height="21dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/next_icon"
+            app:layout_constraintEnd_toEndOf="@+id/BtnToAdd"
+            app:layout_constraintTop_toTopOf="@+id/BtnToAdd" />
+
+        <ImageView
+            android:id="@+id/imageView9"
+            android:layout_width="228dp"
+            android:layout_height="79dp"
+            android:layout_marginTop="-20dp"
+            android:src="@drawable/home_logo"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView6" />
+
+        <EditText
+            android:id="@+id/HomeSearchBar"
+            android:layout_width="308dp"
+            android:layout_height="39dp"
+            android:layout_marginStart="171dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="183dp"
+            android:background="@drawable/searchbar_design"
+            android:fontFamily="@font/poppins_light"
+            android:gravity="center"
+            android:hint="Search your favourite food ..."
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.47"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView9" />
+
+        <ImageView
+            android:id="@+id/imageView12"
+            android:layout_width="25dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="10dp"
+            android:src="@drawable/search_icon"
+            app:layout_constraintBottom_toBottomOf="@+id/HomeSearchBar"
+            app:layout_constraintStart_toStartOf="@+id/HomeSearchBar"
+            app:layout_constraintTop_toTopOf="@+id/HomeSearchBar" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottom_view_card"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:backgroundTint="#FFF2E2"
+        android:elevation="18dp"
+        app:behavior_peekHeight="320dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:shapeAppearanceOverlay="@style/TopRoundedCorners"
+        app:strokeColor="#FFF2E2">
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/bottomView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFF2E2">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+
+                <TextView
+                    android:id="@+id/Location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="46dp"
+                    android:fontFamily="@font/poppins_bold"
+                    android:text="📌 Petaling Jaya, Selangor"
+                    android:textColor="#262626"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/TVLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="32dp"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="LOCATION"
+                    android:textColor="#575757"
+                    android:textSize="9sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/imageView13"
+                    android:layout_width="81dp"
+                    android:layout_height="49dp"
+                    android:src="@drawable/bar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    tools:layout_editor_absoluteY="-16dp" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
