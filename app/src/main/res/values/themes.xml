@@ -13,6 +13,12 @@
         <item name="cornerSizeBottomRight">0dp</item>
     </style>
 
+    <style name="TabStyle" parent="TextAppearance.Design.Tab">
+        <item name="textAllCaps">false</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+    </style>
+
     <style name="Theme.Mealshare" parent="Base.Theme.Mealshare" />
 
 

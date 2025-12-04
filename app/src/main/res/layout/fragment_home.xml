@@ -142,7 +142,7 @@
         android:layout_height="match_parent"
         android:backgroundTint="#FFF2E2"
         android:elevation="18dp"
-        app:behavior_peekHeight="320dp"
+        app:behavior_peekHeight="340dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         app:shapeAppearanceOverlay="@style/TopRoundedCorners"
         app:strokeColor="#FFF2E2">
@@ -182,6 +182,41 @@
                     android:text="LOCATION"
                     android:textColor="#575757"
                     android:textSize="9sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/CardTabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="88dp"
+                    android:background="@android:color/transparent"
+                    app:layout_constraintEnd_toEndOf="parent"
+
+                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tabBackground="@drawable/tab_background_selector"
+                    app:tabGravity="fill"
+                    app:tabIndicatorHeight="0dp"
+                    app:tabMode="auto"
+                    app:tabRippleColor="@android:color/transparent"
+                    app:tabSelectedTextColor="#8A4E01"
+                    app:tabTextAppearance="@style/TabStyle"
+                    app:tabTextColor="#2C2C2C">
+
+                </com.google.android.material.tabs.TabLayout>
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/CardFragmentView"
+                    android:layout_width="400dp"
+                    android:layout_height="201dp"
+                    android:layout_marginTop="144dp"
+                    android:minHeight="400dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.0"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 

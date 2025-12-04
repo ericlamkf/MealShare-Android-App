@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("de.hdodenhof:circleimageview:3.1.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
