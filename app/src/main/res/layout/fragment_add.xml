@@ -1,14 +1,292 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/inapp_gradient"
     tools:context=".AddFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="This is Add Page" />
+        android:layout_height="wrap_content"
+        android:paddingBottom="80dp" >
 
-</FrameLayout>
+        <TextView
+            android:id="@+id/tv_add_food_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/poppins_bold"
+            android:text="Add Food"
+            android:textColor="#1F1F1F"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/imageView8"
+            android:layout_width="53dp"
+            android:layout_height="57dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/add"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/photo_upload_container"
+            android:layout_width="0dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:background="@drawable/rounded_photo_background"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_add_food_title">
+
+            <ImageView
+                android:id="@+id/cameraIcon"
+                android:layout_width="87dp"
+                android:layout_height="54dp"
+                android:src="@drawable/camera_icon"
+                app:layout_constraintBottom_toTopOf="@+id/tv_tap_to_upload"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/image_preview"
+                app:layout_constraintVertical_bias="0.879" />
+
+            <ImageView
+                android:id="@+id/image_preview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:contentDescription="Food photo upload preview"
+                android:scaleType="centerCrop"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_editor_absoluteY="0dp" />
+
+            <TextView
+                android:id="@+id/tv_tap_to_upload"
+                android:layout_width="121dp"
+                android:layout_height="20dp"
+                android:drawablePadding="8dp"
+                android:fontFamily="@font/poppins_medium"
+                android:gravity="center"
+                android:text="Tap to upload photo"
+                android:textColor="#313131"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.694" />
+
+            <ImageView
+                android:id="@+id/removeBTN"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/removebtn"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/image_preview" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/tv_food_tags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Food Tags"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="@id/photo_upload_container"
+            app:layout_constraintTop_toBottomOf="@id/photo_upload_container"/>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chip_group_tags"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="8dp"
+            app:layout_constraintEnd_toEndOf="@id/photo_upload_container"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@id/tv_food_tags"
+            app:layout_constraintTop_toBottomOf="@id/tv_food_tags"
+            app:singleSelection="false">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_hot_meal"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Hot Meal"
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_halal"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Halal"
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_vegetarian"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Vegetarian"
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_vegan"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Vegan"
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_nuts"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Contains Nuts"
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chip_gluten_free"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_medium"
+                android:text="Gluten-Free"
+                app:chipBackgroundColor="@drawable/chip_background_selector" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <TextView
+            android:id="@+id/tv_food_name_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="120dp"
+            android:text="Food Name"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/tv_food_tags"
+            app:layout_constraintTop_toBottomOf="@id/tv_food_tags" />
+
+        <EditText
+            android:id="@+id/et_food_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/edittext_design"
+            android:fontFamily="@font/poppins_medium"
+            android:hint="e.g., Nasi Lemak"
+            android:inputType="textCapWords"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="@id/photo_upload_container"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@id/tv_food_name_label"
+            app:layout_constraintTop_toBottomOf="@id/tv_food_name_label" />
+
+        <TextView
+            android:id="@+id/tv_description_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Description"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/tv_food_name_label"
+            app:layout_constraintTop_toBottomOf="@id/et_food_name" />
+
+        <EditText
+            android:id="@+id/et_description"
+            android:layout_width="0dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/edittext_design"
+            android:gravity="top"
+            android:hint="Describe your food..."
+            android:inputType="textMultiLine"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="@id/et_food_name"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@id/tv_description_label"
+            app:layout_constraintTop_toBottomOf="@id/tv_description_label" />
+
+        <TextView
+            android:id="@+id/tv_quantity_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quantity"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="@id/et_food_name"
+            app:layout_constraintTop_toBottomOf="@id/et_description"/>
+
+        <EditText
+            android:id="@+id/et_quantity"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="e.g., 5 packs"
+            android:background="@drawable/edittext_design"
+            android:padding="12dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="@id/tv_quantity_label"
+            app:layout_constraintEnd_toEndOf="@id/et_food_name"
+            app:layout_constraintTop_toBottomOf="@id/tv_quantity_label"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/tv_expiry_time_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Expiry Time"
+            android:inputType="none"
+            android:focusable="false"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            app:layout_constraintStart_toStartOf="@id/tv_quantity_label"
+            app:layout_constraintTop_toBottomOf="@id/et_quantity"/>
+
+        <EditText
+            android:id="@+id/et_expiry_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="e.g., Today 6:00 PM"
+            android:background="@drawable/edittext_design"
+            android:padding="12dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="@id/tv_expiry_time_label"
+            app:layout_constraintEnd_toEndOf="@id/et_quantity"
+            app:layout_constraintTop_toBottomOf="@id/tv_expiry_time_label"
+            android:inputType="datetime" />
+
+        <Button
+            android:id="@+id/btn_post_listing"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Post Listing"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#FEAA3E"
+            android:minHeight="55dp"
+            app:cornerRadius="10dp"
+            android:layout_marginTop="40dp"
+            app:layout_constraintStart_toStartOf="@id/et_expiry_time"
+            app:layout_constraintEnd_toEndOf="@id/et_expiry_time"
+            app:layout_constraintTop_toBottomOf="@id/et_expiry_time"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
