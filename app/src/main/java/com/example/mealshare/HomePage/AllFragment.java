@@ -2,13 +2,23 @@ package com.example.mealshare.HomePage;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.mealshare.R;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -16,6 +26,11 @@ import com.example.mealshare.R;
  * create an instance of this fragment.
  */
 public class AllFragment extends Fragment {
+
+    private RecyclerView recyclerView;
+    private MealAdapter mealAdapter;
+    private List<Meal> mealList;
+    private FirebaseFirestore db;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -63,4 +78,39 @@ public class AllFragment extends Fragment {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_all, container, false);
     }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        recyclerView = view.findViewById(R.id.recycler_view_all);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        mealList = new ArrayList<>();
+        mealAdapter = new MealAdapter(getContext(), mealList);
+        recyclerView.setAdapter(mealAdapter);
+
+        db = FirebaseFirestore.getInstance();
+        fetchmeals();
+    }
+
+    private void fetchmeals() {
+        db.collection("meals")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshot, e) ->{
+                    if(e != null){
+                        return;
+                    }
+
+                    if(snapshot != null && !snapshot.isEmpty()){
+                        List<Meal> fetchedMeals = new ArrayList<>();
+                        for(DocumentSnapshot doc : snapshot.getDocuments()){
+                            Meal meal = doc.toObject(Meal.class);
+                            fetchedMeals.add(meal);
+                        }
+                        mealAdapter.updateList(fetchedMeals);
+                    }
+                });
+    }
+
 }

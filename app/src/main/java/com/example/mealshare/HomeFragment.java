@@ -127,7 +127,7 @@ public class HomeFragment extends Fragment {
         MealShareAdapter adapter = new MealShareAdapter(requireActivity());
         viewPager2.setAdapter(adapter);
 
-        String[] tabTitles = new String[]{"All", "Near Me", "Ending Soon", "Vege"};
+        String[] tabTitles = new String[]{"All", "Halal", "Ending Soon", "Vege"};
 
         new TabLayoutMediator(tabLayout, viewPager2, (tab, position)->{
             tab.setText(tabTitles[position]);

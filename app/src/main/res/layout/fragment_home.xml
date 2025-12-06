@@ -211,8 +211,8 @@
 
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/CardFragmentView"
-                    android:layout_width="400dp"
-                    android:layout_height="201dp"
+                    android:layout_width="404dp"
+                    android:layout_height="873dp"
                     android:layout_marginTop="144dp"
                     android:minHeight="400dp"
                     app:layout_constraintEnd_toEndOf="parent"
