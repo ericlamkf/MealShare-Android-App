@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tv_food_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_bold"
+            android:text="Pizza Italia"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/iv_map_icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/iv_person_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/profile"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_food_name"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:id="@+id/tv_quantity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="15 Meals available"
+            android:textSize="14sp"
+            android:layout_marginStart="4dp"
+            app:layout_constraintStart_toEndOf="@id/iv_person_icon"
+            app:layout_constraintTop_toTopOf="@id/iv_person_icon"
+            app:layout_constraintBottom_toBottomOf="@id/iv_person_icon"/>
+
+        <ImageView
+            android:id="@+id/iv_pin_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/location_icon"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/tv_quantity"
+            app:layout_constraintTop_toTopOf="@id/iv_person_icon" />
+
+        <TextView
+            android:id="@+id/tv_location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Seapark"
+            android:textSize="14sp"
+            android:layout_marginStart="4dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            app:layout_constraintStart_toEndOf="@id/iv_pin_icon"
+            app:layout_constraintEnd_toStartOf="@id/iv_map_icon"
+            app:layout_constraintTop_toTopOf="@id/iv_pin_icon"
+            app:layout_constraintBottom_toBottomOf="@id/iv_pin_icon"/>
+
+        <ImageView
+            android:id="@+id/iv_map_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/google_map"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/iv_food_image"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginTop="12dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/food_placeholder"
+            app:layout_constraintTop_toBottomOf="@id/tv_quantity"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

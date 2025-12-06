@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
