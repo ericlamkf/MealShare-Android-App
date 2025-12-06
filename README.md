@@ -4,11 +4,12 @@
 MealShare is a mobile application designed to bridge the gap between food donors and those in need. Aligned with UN Sustainable Development Goal 2 (Zero Hunger), this platform allows users to easily list surplus food and allows others to locate nearby donations in real-time.
 
 ✨ Key Features
-🔐 Secure Authentication: User registration and login using Firebase Authentication.
 
-📍 Real-Time Location: Automatic detection of user address using Google Fused Location Provider and Geocoding.
+Secure Authentication: User registration and login using Firebase Authentication.
 
-📸 Visual Listings: "Add Food" interface allowing users to upload photos via Gallery, select tags (Halal, Vege, etc.), and set expiry times.
+Real-Time Location: Automatic detection of user address using Google Fused Location Provider and Geocoding.
+
+Visual Listings: "Add Food" interface allowing users to upload photos via Gallery, select tags (Halal, Vege, etc.), and set expiry times.
 
 ☁️ Cloud Integration:
 
@@ -19,6 +20,7 @@ Firebase Storage: Securely hosts profile pictures and food images.
 📱 Modern UI: Features a custom Bottom Navigation, TabLayout filters (All, Near Me, Ending Soon), and Material Design components.
 
 🛠️ Tech Stack
+
 Language: Java
 
 IDE: Android Studio Ladybug/Koala
