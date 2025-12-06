@@ -86,7 +86,7 @@ public class NearMeFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         mealList = new ArrayList<>();
-        mealAdapter = new MealAdapter(getContext(), mealList);
+        mealAdapter = new MealAdapter(getContext(), mealList, this::onMealClick);
         recyclerView.setAdapter(mealAdapter);
 
         db = FirebaseFirestore.getInstance();
@@ -110,5 +110,22 @@ public class NearMeFragment extends Fragment {
                         mealAdapter.updateList(fetchedMeals);
                     }
                 });
+    }
+
+    public void onMealClick(Meal meal) {
+        // 1. Create Detail Fragment
+        MealDetailFragment detailFragment = new MealDetailFragment();
+
+        // 2. Pass the Meal object
+        Bundle args = new Bundle();
+        args.putSerializable("meal_data", meal);
+        detailFragment.setArguments(args);
+
+        // 3. Navigate (Replace the WHOLE screen, not just the inner part)
+        // Note: Use requireActivity().getSupportFragmentManager() to cover the whole screen
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.frameLayout, detailFragment) // R.id.frameLayout is in MainActivity
+                .addToBackStack(null) // Allows user to press Back button to return
+                .commit();
     }
 }

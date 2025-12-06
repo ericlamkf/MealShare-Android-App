@@ -1,9 +1,11 @@
 package com.example.mealshare.HomePage; // Check your package name
 
 import com.google.firebase.Timestamp;
+
+import java.io.Serializable;
 import java.util.List;
 
-public class Meal {
+public class Meal implements Serializable {
     private String foodName;
     private String description;
     private String quantity;

@@ -24,9 +24,16 @@ public class MealAdapter extends RecyclerView.Adapter<MealAdapter.MealViewHolder
     private List<Meal> mealList;
     private Context context;
 
-    public MealAdapter(Context context, List<Meal> mealList) {
+    public interface OnMealClickListener {
+        void onMealClick(Meal meal);
+    }
+
+    private OnMealClickListener listener;
+
+    public MealAdapter(Context context, List<Meal> mealList, OnMealClickListener listener) {
         this.context = context;
         this.mealList = mealList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -52,6 +59,10 @@ public class MealAdapter extends RecyclerView.Adapter<MealAdapter.MealViewHolder
                     .placeholder(R.drawable.food_placeholder) // Create a grey placeholder drawable
                     .into(holder.foodImage);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            listener.onMealClick(meal); // Trigger the interface
+        });
     }
 
     @Override
