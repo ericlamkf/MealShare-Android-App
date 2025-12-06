@@ -1,48 +1,58 @@
-🍱 MealShare - Food Donation App
-"Start Sharing Your Food Now."
+# 🍱 MealShare - Food Donation App
 
-MealShare is a mobile application designed to bridge the gap between food donors and those in need. Aligned with UN Sustainable Development Goal 2 (Zero Hunger), this platform allows users to easily list surplus food and allows others to locate nearby donations in real-time.
+[![Platform](https://img.shields.io/badge/Platform-Android-green.svg?style=flat)](https://www.android.com)
+[![Language](https://img.shields.io/badge/Language-Java-orange.svg?style=flat)](https://www.java.com)
+[![Backend](https://img.shields.io/badge/Backend-Firebase-yellow.svg?style=flat)](https://firebase.google.com/)
+[![Course](https://img.shields.io/badge/Course-WIA2007-blue.svg?style=flat)]()
 
-✨ Key Features
-🔐 Secure Authentication: User registration and login using Firebase Authentication.
+> **"Start Sharing Your Food Now."**
 
-📍 Real-Time Location: Automatic detection of user address using Google Fused Location Provider and Geocoding.
+**MealShare** is a mobile application designed to bridge the gap between food donors and those in need. Aligned with **UN Sustainable Development Goal 2 (Zero Hunger)**, this platform allows users to easily list surplus food and allows others to locate nearby donations in real-time.
 
-📸 Visual Listings: "Add Food" interface allowing users to upload photos via Gallery, select tags (Halal, Vege, etc.), and set expiry times.
+---
 
-☁️ Cloud Integration:
+## 📱 App Screenshots
 
-Firestore Database: Stores user profiles and food listing details.
+| Home Page | Add Donation | Registration |
+|:---:|:---:|:---:|
+| <img src="screenshots/home.png" width="200" alt="Home Page"> | <img src="screenshots/add.png" width="200" alt="Add Page"> | <img src="screenshots/register.png" width="200" alt="Register"> |
+| *View nearby donations* | *Upload food details* | *Create an account* |
 
-Firebase Storage: Securely hosts profile pictures and food images.
+*(Note: Please ensure you create a `screenshots` folder in your project root and add images named `home.png`, `add.png`, and `register.png`)*
 
-📱 Modern UI: Features a custom Bottom Navigation, TabLayout filters (All, Near Me, Ending Soon), and Material Design components.
+---
 
-🛠️ Tech Stack
-Language: Java
+## ✨ Key Features
 
-IDE: Android Studio Ladybug/Koala
+* **🔐 Secure Authentication:** User registration and login using **Firebase Authentication**.
+* **📍 Real-Time Location:** Automatic detection of user address using **Google Fused Location Provider** and Geocoding.
+* **📸 Visual Listings:** "Add Food" interface allowing users to upload photos via **Gallery**, select tags (Halal, Vege, etc.), and set expiry times.
+* **☁️ Cloud Integration:**
+    * **Firestore Database:** Stores user profiles and food listing details.
+    * **Firebase Storage:** Securely hosts profile pictures and food images.
+* **📱 Modern UI:** Features a custom **Bottom Navigation**, **TabLayout** filters (All, Near Me, Ending Soon), and **Material Design** components.
 
-Architecture: MVVM (SharedViewModel for data passing)
+---
 
-Backend: Firebase (Auth, Firestore, Storage)
+## 🛠️ Tech Stack
 
-Key Libraries:
+| Category | Technology |
+| :--- | :--- |
+| **Language** | Java |
+| **IDE** | Android Studio Ladybug/Koala |
+| **Architecture** | MVVM (SharedViewModel for data passing) |
+| **Backend** | Firebase (Authentication, Firestore, Storage) |
+| **Key Libraries** | Glide, Google Play Services Location, Material Components |
 
-Glide: For image loading and caching.
+---
 
-Google Play Services Location: For GPS functionality.
+## 💾 Database Structure (Firestore)
 
-Material Components: For Chips, Cards, and Bottom Sheets.
+The app uses a NoSQL document-based structure.
 
-💾 Database Structure (Firestore)
-The app uses a NoSQL document-based structure:
-
-users Collection
+### `users` Collection
 Stores user profile information.
-
-JSON
-```
+```json
 {
   "uid": "user_unique_id",
   "name": "Eric Lam",
@@ -50,60 +60,3 @@ JSON
   "username": "eric.lam",
   "profileImageUrl": "https://firebasestorage..."
 }
-meals Collection
-Stores individual food donations.
-```
-JSON
-```
-{
-  "mealId": "auto_generated_id",
-  "foodName": "Nasi Lemak",
-  "quantity": "5 packs",
-  "location": "17, SS 2/73, Petaling Jaya",
-  "tags": ["Halal", "Hot Meal"],
-  "expiryTime": "Timestamp",
-  "imageUrl": "https://firebasestorage..."
-}
-```
-🚀 Getting Started
-To run this project locally, follow these steps:
-
-1. Prerequisites
-Android Studio installed.
-
-A physical Android device or Emulator (API 24+ recommended).
-
-2. Installation
-Clone the repo:
-```
-git clone https://github.com/YourUsername/MealShare.git
-```
-Open in Android Studio.
-
-3. Firebase Setup (Crucial!)
-This project relies on Firebase. You must provide your own configuration file.
-
-Create a project on the Firebase Console.
-
-Enable Authentication (Email/Password), Firestore, and Storage.
-
-Download the google-services.json file.
-
-Paste the file into the app/ directory of the project:
-
-```
-MealShare/
-├── app/
-│   ├── google-services.json  <-- Place it here
-│   ├── src/
-├── build.gradle
-```
-
-Sync Gradle and Run the app!
-
-🤝 Contribution
-This project was developed for the WIA2007 Mobile Application Development course.
-
-Developer: Eric Lam Kah Fai
-
-Team Members: Aida, Huizhe, Haoyang, Desmond, Wei Shen
