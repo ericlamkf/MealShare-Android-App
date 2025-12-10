@@ -35,8 +35,8 @@ public class MainActivity extends AppCompatActivity {
                 replaceFragment(new HomeFragment());
             } else if (itemId == R.id.add) {
                 replaceFragment(new AddFragment());
-            } else if (itemId == R.id.my_activity) {
-                replaceFragment(new MyActivityFragment());
+            } else if (itemId == R.id.explore) {
+                replaceFragment(new ExploreFragment());
             } else if (itemId == R.id.profile) {
                 replaceFragment(new ProfileFragment());
             }
