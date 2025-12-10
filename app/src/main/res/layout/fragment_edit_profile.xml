@@ -184,7 +184,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:backgroundTint="#F0AD4B"
-                android:fontFamily="@font/poppins_bold"
+                android:fontFamily="@font/poppins_medium"
                 android:text="Save Changes"
                 android:textAllCaps="false"
                 android:textColor="#1A1A1A"
