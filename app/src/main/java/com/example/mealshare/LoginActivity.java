@@ -21,10 +21,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
-    private FirebaseAuth auth;
+    // private FirebaseAuth auth; // Removed as part of refactor
     private EditText login_email, login_password;
     private Button login_btn;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +45,10 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        auth = FirebaseAuth.getInstance();
+        // Initialize ViewModel
+        com.example.mealshare.SharedViewModel viewModel = new androidx.lifecycle.ViewModelProvider(this)
+                .get(com.example.mealshare.SharedViewModel.class);
+
         login_email = findViewById(R.id.login_email);
         login_password = findViewById(R.id.login_password);
         login_btn = findViewById(R.id.login_btn);
@@ -57,29 +59,29 @@ public class LoginActivity extends AppCompatActivity {
                 String email = login_email.getText().toString();
                 String password = login_password.getText().toString();
 
-                if(!email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                   if(!password.isEmpty()) {
-                        auth.signInWithEmailAndPassword(email, password)
-                                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                                    @Override
-                                    public void onSuccess(AuthResult authResult) {
-                                        Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                        finish();
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(Exception e) {
-                                        Toast.makeText(LoginActivity.this, "Login Failed", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                   }else{
-                       login_password.setError("Empty Fields Are not Allowed");
-                   }
-                }else if(email.isEmpty()){
+                if (!email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    if (!password.isEmpty()) {
+                        viewModel.loginUser(email, password);
+                    } else {
+                        login_password.setError("Empty Fields Are not Allowed");
+                    }
+                } else if (email.isEmpty()) {
                     login_email.setError("Email cannot be empty.");
-                }else{
+                } else {
                     login_email.setError("Please enter a valid email.");
+                }
+            }
+        });
+
+        // Observe Login Status
+        viewModel.getLoginStatus().observe(this, status -> {
+            if (status != null) {
+                if (status.startsWith("Success")) {
+                    Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(LoginActivity.this, status, Toast.LENGTH_SHORT).show();
                 }
             }
         });

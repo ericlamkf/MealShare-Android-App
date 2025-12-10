@@ -63,6 +63,16 @@
             android:lineSpacingExtra="4dp"
             android:layout_marginTop="8dp"/>
 
+        <Button
+            android:id="@+id/btn_request"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Request Food"
+            android:backgroundTint="#FF9B62"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"/>
+
         <ImageButton
             android:id="@+id/btn_back"
             android:layout_width="51dp"

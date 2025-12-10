@@ -30,7 +30,7 @@ public class MealDetailFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_meal_detail, container, false);
     }
 
@@ -47,23 +47,47 @@ public class MealDetailFragment extends Fragment {
             requireActivity().onBackPressed();
         });
 
+        // Initialize ViewModel
+        com.example.mealshare.SharedViewModel viewModel = new androidx.lifecycle.ViewModelProvider(requireActivity())
+                .get(com.example.mealshare.SharedViewModel.class);
+
         // Find Views
         ImageView imageView = view.findViewById(R.id.detail_image);
         TextView nameTv = view.findViewById(R.id.detail_food_name);
         TextView locTv = view.findViewById(R.id.detail_location);
         TextView qtyTv = view.findViewById(R.id.detail_quantity);
         TextView descTv = view.findViewById(R.id.detail_description);
+        android.widget.Button requestBtn = view.findViewById(R.id.btn_request);
 
         // Populate Data
         if (meal != null) {
             nameTv.setText(meal.getFoodName());
             locTv.setText("📍 " + meal.getLocation());
             qtyTv.setText(meal.getQuantity() + " available");
-            descTv.setText(meal.getDescription()); // 🔥 Show full description here
+            descTv.setText(meal.getDescription());
 
             if (meal.getImageUrl() != null) {
                 Glide.with(this).load(meal.getImageUrl()).into(imageView);
             }
+
+            // Logic: Request Food
+            // Logic: Request Food
+            requestBtn.setOnClickListener(v -> {
+                viewModel.requestFood(meal.getMealId(), meal.getDonorId());
+            });
         }
+
+        // Observer
+        viewModel.getRequestStatus().observe(getViewLifecycleOwner(), status -> {
+            if (status != null) {
+                android.widget.Toast.makeText(getContext(), status, android.widget.Toast.LENGTH_SHORT).show();
+
+                if (status.startsWith("Success")) {
+                    requireActivity().onBackPressed(); // Navigate back
+                    // Clear the status so it doesn't re-trigger?
+                    // Ideally yes, but ViewModel handles basic string here.
+                }
+            }
+        });
     }
 }
