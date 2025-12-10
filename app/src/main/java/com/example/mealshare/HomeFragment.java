@@ -1,6 +1,9 @@
 package com.example.mealshare;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -17,6 +20,7 @@ import androidx.lifecycle.ViewModelProvider; // REQUIRED for SharedViewModel
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -116,6 +120,37 @@ public class HomeFragment extends Fragment {
         BtnToAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ObjectAnimator flickerAnimator = ObjectAnimator.ofFloat(BtnToAdd, "alpha", 1f, 0.3f);
+
+                // Make one pulse very fast (e.g., 70 milliseconds)
+                flickerAnimator.setDuration(20);
+
+                // Repeat it 3 times for a "flicker" effect
+                flickerAnimator.setRepeatCount(3);
+
+                // Reverse mode makes it go 1.0 -> 0.3 -> 1.0 smoothly
+                flickerAnimator.setRepeatMode(ObjectAnimator.REVERSE);
+
+                // Add an interpolator for smoother movement
+                flickerAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+
+                // Add a listener to perform the navigation ONLY after the animation is done.
+                // This prevents jerky transitions.
+                flickerAnimator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        // Ensure the button is fully visible again in case it got stuck
+                        BtnToAdd.setAlpha(1f);
+
+                        // Navigate after the flicker finishes
+                        toNextFragment();
+                    }
+                });
+
+                // Start the animation
+                flickerAnimator.start();
+
                 toNextFragment();
             }
         });
