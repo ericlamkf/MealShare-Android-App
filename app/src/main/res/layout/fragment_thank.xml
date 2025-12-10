@@ -78,5 +78,18 @@
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <ImageView
+        android:id="@+id/ivVendorPhoto"
+        android:layout_width="280dp"
+        android:layout_height="216dp"
+        android:layout_marginBottom="24dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/default_vendor"
+        app:layout_constraintBottom_toTopOf="@+id/ivRateBox"
+        app:layout_constraintEnd_toEndOf="@+id/ivRateBox"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/ivRateBox" />   <!-- fallback image -->
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
