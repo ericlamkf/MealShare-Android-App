@@ -11,6 +11,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public class SplashScreenActivity extends AppCompatActivity {
 
     @Override
@@ -26,15 +29,28 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         boolean loggedIn = false;
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            Intent intentOldUser = new Intent(SplashScreenActivity.this, MainActivity.class);
-            Intent intentNewUser = new Intent(SplashScreenActivity.this, LoginActivity.class);
-            if(loggedIn)
-                startActivity(intentOldUser);
-            else
-                startActivity(intentNewUser);
-
-            finish();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                checkLoginStatus();
+            }
         }, 2000);
+    }
+
+    private void checkLoginStatus() {
+        // 1. Get the current user from Firebase
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        Intent intent;
+        if (currentUser != null) {
+            // 👤 User IS logged in -> Go straight to Home (MainActivity)
+            intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+        } else {
+            // 👤 User is NOT logged in -> Go to Login Page
+            intent = new Intent(SplashScreenActivity.this, LoginActivity.class);
+        }
+
+        startActivity(intent);
+        finish(); // Destroys the Splash Activity so "Back" doesn't return here
     }
 }
