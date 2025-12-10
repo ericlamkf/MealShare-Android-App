@@ -102,7 +102,7 @@ public class HomeFragment extends Fragment {
         }
 
         // USER DATA LOADING
-        HomeName = view.findViewById(R.id.HomeName);
+        HomeName = view.findViewById(R.id.UserName);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
