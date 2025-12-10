@@ -1,6 +1,7 @@
 package com.example.mealshare;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -104,6 +105,21 @@ public class ProfileFragment extends Fragment {
         // 3. Setup Location
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         checkLocationPermission();
+
+        Button btnLogout = view.findViewById(R.id.BtnLogout);
+
+        btnLogout.setOnClickListener(v -> {
+            // 1. Sign out from Firebase
+            FirebaseAuth.getInstance().signOut();
+
+            // 2. Redirect to Login Activity
+            Intent intent = new Intent(getActivity(), LoginActivity.class);
+
+            // Clear back stack so user can't press "Back" to return
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);
+        });
     }
 
     @Override
