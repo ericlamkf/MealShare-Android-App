@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class SharedViewModel extends ViewModel {
@@ -35,6 +36,10 @@ public class SharedViewModel extends ViewModel {
         return requestStatus;
     }
 
+    public void clearRequestStatus() {
+        requestStatus.setValue(null);
+    }
+
     public LiveData<String> getCurrentUserName() {
         return currentUserName;
     }
@@ -57,7 +62,7 @@ public class SharedViewModel extends ViewModel {
         liveLocation.setValue(address);
     }
 
-    // Task 2: Implement Request Logic
+    // Task 2: Implement Request Logic (Safely with Transaction)
     public void requestFood(String mealId, String donorId) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
@@ -75,15 +80,65 @@ public class SharedViewModel extends ViewModel {
             return;
         }
 
-        // Action: Update Firestore
-        db.collection("meals").document(mealId)
-                .update("status", "Reserved", "receiverId", currentUserId)
-                .addOnSuccessListener(aVoid -> {
-                    requestStatus.setValue("Success: Food requested successfully!");
-                })
-                .addOnFailureListener(e -> {
-                    requestStatus.setValue("Error: Failed to request food. " + e.getMessage());
-                });
+        // Action: Run Database Transaction
+        com.google.firebase.firestore.DocumentReference mealRef = db.collection("meals").document(mealId);
+
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(mealRef);
+
+            // 1. Check if Meal Exists
+            if (!snapshot.exists()) {
+                throw new com.google.firebase.firestore.FirebaseFirestoreException(
+                        "Meal does not exist!",
+                        com.google.firebase.firestore.FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            // 2. Check Availability (Race Condition Check)
+            String status = snapshot.getString("status");
+            if ("Reserved".equals(status)) {
+                throw new com.google.firebase.firestore.FirebaseFirestoreException(
+                        "Sorry, this meal is already reserved!",
+                        com.google.firebase.firestore.FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            // 3. Handle Quantity
+            String qtyStr = snapshot.getString("quantity");
+            int newQty = 0;
+            boolean isFullyReserved = true;
+
+            try {
+                // Try to parse quantity as number
+                int currentQty = Integer.parseInt(qtyStr != null ? qtyStr : "0");
+                if (currentQty > 0) {
+                    newQty = currentQty - 1;
+                    transaction.update(mealRef, "quantity", String.valueOf(newQty));
+
+                    if (newQty > 0) {
+                        isFullyReserved = false; // Still available for others
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // If quantity is text (e.g. "5 kg"), we assume single unit and reserve it
+                // fully.
+                isFullyReserved = true;
+            }
+
+            // 4. Update Status & Receiver
+            if (isFullyReserved) {
+                transaction.update(mealRef, "status", "Reserved");
+            }
+
+            // We always Record the receiver.
+            // Note: If multiple people claim parts, this field overwrites the previous
+            // receiver.
+            // For a proper system, we'd need a subcollection 'requests'.
+            // For now, tracking the *latest* requester on the main doc is acceptable for
+            // MVP.
+            transaction.update(mealRef, "receiverId", currentUserId);
+
+            return null;
+        }).addOnSuccessListener(aVoid -> requestStatus.setValue("Success: Food requested successfully!"))
+                .addOnFailureListener(e -> requestStatus.setValue("Error: " + e.getMessage()));
     }
 
     // Task 2: Fetch Current User Name (Cache it)
@@ -121,5 +176,64 @@ public class SharedViewModel extends ViewModel {
                 .addOnFailureListener(e -> {
                     loginStatus.setValue("Error: Login Failed. " + e.getMessage());
                 });
+    }
+
+    // Task: Implement Cancel Request Logic
+    public void cancelRequest(String mealId) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser == null) {
+            requestStatus.setValue("Error: You must be logged in.");
+            return;
+        }
+
+        String currentUserId = currentUser.getUid();
+        DocumentReference mealRef = db.collection("meals").document(mealId);
+
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(mealRef);
+
+            if (!snapshot.exists()) {
+                throw new com.google.firebase.firestore.FirebaseFirestoreException(
+                        "Meal not found.",
+                        com.google.firebase.firestore.FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            // 1. Verify Ownership of Request
+            String receiverId = snapshot.getString("receiverId");
+            if (receiverId == null || !receiverId.equals(currentUserId)) {
+                // Note: In a multi-quantity scenario with a single receiverId field,
+                // this only allows the *last* person to cancel.
+                // This is a known limitation of the current data model.
+                throw new com.google.firebase.firestore.FirebaseFirestoreException(
+                        "You don't have an active request for this meal.",
+                        com.google.firebase.firestore.FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            // 2. Increment Quantity
+            String qtyStr = snapshot.getString("quantity");
+            int newQty = 1; // Default if parsing fails
+            try {
+                int currentQty = Integer.parseInt(qtyStr != null ? qtyStr : "0");
+                newQty = currentQty + 1;
+                transaction.update(mealRef, "quantity", String.valueOf(newQty));
+            } catch (NumberFormatException e) {
+                // If text (e.g. "5 boxes"), we can't increment mathematically.
+                // We just ensure it's available.
+            }
+
+            // 3. Update Status
+            // Since we are cancelling, there is now at least 1 item (the one we returned).
+            // So status MUST be Available.
+            transaction.update(mealRef, "status", "Available");
+
+            // 4. Clear Receiver
+            // We clear it so the button toggles back.
+            // Warning: If there were other requesters, this Field doesn't track them.
+            transaction.update(mealRef, "receiverId", null);
+
+            return null;
+        }).addOnSuccessListener(aVoid -> requestStatus.setValue("Success: Request canceled."))
+                .addOnFailureListener(e -> requestStatus.setValue("Error: " + e.getMessage()));
     }
 }

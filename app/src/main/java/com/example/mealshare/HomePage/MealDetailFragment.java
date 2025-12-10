@@ -70,22 +70,41 @@ public class MealDetailFragment extends Fragment {
                 Glide.with(this).load(meal.getImageUrl()).into(imageView);
             }
 
-            // Logic: Request Food
-            // Logic: Request Food
-            requestBtn.setOnClickListener(v -> {
-                viewModel.requestFood(meal.getMealId(), meal.getDonorId());
-            });
+            // Logic: Request vs Cancel
+            String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getUid();
+
+            // Toggle Logic
+            if (currentUserId != null && currentUserId.equals(meal.getReceiverId())) {
+                // User already requested this -> Show Cancel
+                requestBtn.setText("Cancel Request");
+                requestBtn.setBackgroundColor(
+                        androidx.core.content.ContextCompat.getColor(requireContext(), android.R.color.holo_red_light));
+                requestBtn.setOnClickListener(v -> {
+                    viewModel.cancelRequest(meal.getMealId());
+                });
+            } else {
+                // Default -> Show Request
+                requestBtn.setText("Request Food");
+                // Reset color if needed, or rely on distinct Button
+                requestBtn.setOnClickListener(v -> {
+                    viewModel.requestFood(meal.getMealId(), meal.getDonorId());
+                });
+            }
         }
 
         // Observer
         viewModel.getRequestStatus().observe(getViewLifecycleOwner(), status -> {
             if (status != null) {
+                // Fix: Check if fragment is attached to avoid crash
+                if (!isAdded() || getContext() == null) {
+                    return;
+                }
+
                 android.widget.Toast.makeText(getContext(), status, android.widget.Toast.LENGTH_SHORT).show();
 
                 if (status.startsWith("Success")) {
+                    viewModel.clearRequestStatus(); // Consumed the event
                     requireActivity().onBackPressed(); // Navigate back
-                    // Clear the status so it doesn't re-trigger?
-                    // Ideally yes, but ViewModel handles basic string here.
                 }
             }
         });
