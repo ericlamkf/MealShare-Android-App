@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -18,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.textfield.TextInputEditText; // 🔥 Imported for Material Design
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -35,8 +35,10 @@ import static android.app.Activity.RESULT_OK;
 public class EditProfileFragment extends Fragment {
 
     private CircleImageView profileImageView;
-    private EditText editName, editPhone, editEmail, editAddress;
+    // 🔥 Changed to TextInputEditText to match your new XML
+    private TextInputEditText editName, editPhone, editEmail, editAddress;
     private Button btnSave;
+    private View profileContainer; // Wrapper for image + camera icon
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -69,7 +71,6 @@ public class EditProfileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_edit_profile, container, false);
     }
 
@@ -77,16 +78,22 @@ public class EditProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Initialize Views
         profileImageView = view.findViewById(R.id.profile_pic);
+        profileContainer = view.findViewById(R.id.profileContainer); // 🔥 Use the container for better clicking
+
         editName = view.findViewById(R.id.editName);
         editPhone = view.findViewById(R.id.editPhone);
         editEmail = view.findViewById(R.id.editEmail);
         editAddress = view.findViewById(R.id.editAddress);
         btnSave = view.findViewById(R.id.btnSave);
 
+        // Load existing data
         loadUserData();
 
-        profileImageView.setOnClickListener(v -> openGallery());
+        // 🔥 Set listener on the CONTAINER so clicking the camera icon works too
+        profileContainer.setOnClickListener(v -> openGallery());
+        profileImageView.setOnClickListener(v -> openGallery()); // Fallback
 
         btnSave.setOnClickListener(v -> saveProfileChanges());
     }
@@ -115,7 +122,10 @@ public class EditProfileFragment extends Fragment {
 
                     if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
                         try {
-                            Glide.with(this).load(profileImageUrl).into(profileImageView);
+                            Glide.with(this)
+                                    .load(profileImageUrl)
+                                    .placeholder(R.drawable.profile_pic)
+                                    .into(profileImageView);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -132,14 +142,29 @@ public class EditProfileFragment extends Fragment {
             return;
         }
 
-        btnSave.setEnabled(false); // Prevent multiple clicks
+        String name = editName.getText().toString().trim();
+        String phone = editPhone.getText().toString().trim();
+
+        // Basic Validation
+        if (name.isEmpty()) {
+            editName.setError("Name is required");
+            editName.requestFocus();
+            return;
+        }
+        if (phone.isEmpty()) {
+            editPhone.setError("Phone is required");
+            editPhone.requestFocus();
+            return;
+        }
+
+        btnSave.setEnabled(false);
         btnSave.setText("Saving...");
 
         String uid = currentUser.getUid();
         DocumentReference userRef = db.collection("users").document(uid);
 
         if (mImageUri != null) {
-            // If a new image is selected, upload it first
+            // Upload new image
             StorageReference fileRef = storage.getReference().child("profile_images/" + uid + ".jpg");
             fileRef.putFile(mImageUri)
                     .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
@@ -148,11 +173,10 @@ public class EditProfileFragment extends Fragment {
                     }))
                     .addOnFailureListener(e -> {
                         Toast.makeText(getContext(), "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        btnSave.setEnabled(true);
-                        btnSave.setText("Save Changes");
+                        resetButton();
                     });
         } else {
-            // If no new image, just update the text fields
+            // Update text only
             updateUserData(userRef, null);
         }
     }
@@ -176,15 +200,18 @@ public class EditProfileFragment extends Fragment {
         userRef.update(updates)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Profile updated successfully!", Toast.LENGTH_SHORT).show();
-                    // Navigate back to the profile fragment
                     getParentFragmentManager().popBackStack();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Failed to update profile: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    if (btnSave != null) {
-                        btnSave.setEnabled(true);
-                        btnSave.setText("Save Changes");
-                    }
+                    resetButton();
                 });
+    }
+
+    private void resetButton() {
+        if (btnSave != null) {
+            btnSave.setEnabled(true);
+            btnSave.setText("Save Changes");
+        }
     }
 }

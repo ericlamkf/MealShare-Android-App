@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,10 +17,19 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+// Make sure you import Glide and CircleImageView
+import com.bumptech.glide.Glide;
+import de.hdodenhof.circleimageview.CircleImageView;
+
+// Import your fragments
+// import com.example.mealshare.HomePage.MyActivityFragment; // UNCOMMENT THIS if you have it
+// import com.example.mealshare.ProfilePage.MyRequestsFragment; // UNCOMMENT THIS if you have it
+// import com.example.mealshare.ProfilePage.EditProfileFragment; // UNCOMMENT THIS
+
+import com.example.mealshare.ProfilePage.MyListsFragment;
+import com.example.mealshare.ProfilePage.MyRequestsFragment;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -34,7 +42,13 @@ import java.util.Locale;
 
 public class ProfileFragment extends Fragment {
 
-    private TextView userNameTextView, locationTextView, tvName, tvEmail, tvPhone, tvAddress;
+    // UI Components matching the new XML
+    private CircleImageView profileImageView;
+    private TextView userNameTextView, locationTextView;
+    private TextView tvName, tvEmail, tvPhone, tvAddress;
+    private Button btnEdit, btnMyList, btnMyReq;
+
+    // Firebase & Location
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -54,7 +68,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
@@ -62,21 +75,33 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize Views
+        // 1. Initialize Views (Matching IDs from new XML)
+        profileImageView = view.findViewById(R.id.profile_pic);
         userNameTextView = view.findViewById(R.id.UserName);
         locationTextView = view.findViewById(R.id.Location);
+
+        // Card Details
         tvName = view.findViewById(R.id.tvName);
         tvEmail = view.findViewById(R.id.tvEmail);
         tvPhone = view.findViewById(R.id.tvPhone);
         tvAddress = view.findViewById(R.id.tvAddress);
-        Button btnEdit = view.findViewById(R.id.BtnEdit);
-        LinearLayout userDetailsLayout = view.findViewById(R.id.UserDetails);
 
-        // Set Click Listeners
+        // Buttons
+        btnEdit = view.findViewById(R.id.BtnEdit);
+        btnMyList = view.findViewById(R.id.BtnMyList);
+        btnMyReq = view.findViewById(R.id.BtnMyReq);
+
+        // 2. Set Click Listeners
+        // Note: Make sure EditProfileFragment exists or create it
         btnEdit.setOnClickListener(v -> navigateTo(new EditProfileFragment()));
-        userDetailsLayout.setOnClickListener(v -> navigateTo(new EditProfileFragment()));
 
-        // Location Services
+        // Navigation for My Lists (Assuming MyActivityFragment handles this)
+        btnMyList.setOnClickListener(v -> navigateTo(new MyListsFragment()));
+
+        // Navigation for My Requests
+        btnMyReq.setOnClickListener(v -> navigateTo(new MyRequestsFragment()));
+
+        // 3. Setup Location
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         checkLocationPermission();
     }
@@ -84,24 +109,46 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Load data every time the fragment is resumed
-        loadUserData();
+        loadUserData(); // Reload data when returning to this screen
     }
 
     private void loadUserData(){
         FirebaseUser currentUser = mAuth.getCurrentUser();
+
         if (currentUser != null) {
             DocumentReference userRef = db.collection("users").document(currentUser.getUid());
+
             userRef.get().addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     DocumentSnapshot document = task.getResult();
                     if(document.exists()){
-                        // Set text for all fields
-                        userNameTextView.setText(document.getString("name"));
-                        tvName.setText(document.getString("name"));
-                        tvEmail.setText(document.getString("email"));
-                        tvPhone.setText(document.getString("phone"));
-                        tvAddress.setText(document.getString("address"));
+
+                        // Extract Data
+                        String name = document.getString("name");
+                        String email = document.getString("email");
+                        String phone = document.getString("phone");
+                        String address = document.getString("address");
+                        String profileUrl = document.getString("profileImageUrl");
+
+                        // Update Text Views
+                        if(name != null) {
+                            userNameTextView.setText(name);
+                            tvName.setText(name);
+                        }
+                        if(email != null) tvEmail.setText(email);
+
+                        // Handle empty fields gracefully
+                        tvPhone.setText(phone != null && !phone.isEmpty() ? phone : "Phone not set");
+                        tvAddress.setText(address != null && !address.isEmpty() ? address : "Address not set");
+
+                        // 🔥 Load Profile Image using Glide
+                        if (profileUrl != null && !profileUrl.isEmpty()) {
+                            Glide.with(this)
+                                    .load(profileUrl)
+                                    .placeholder(R.drawable.profile_pic) // Default image while loading
+                                    .error(R.drawable.profile_pic)       // Default if error
+                                    .into(profileImageView);
+                        }
 
                     } else {
                         Toast.makeText(getContext(), "User data not found.", Toast.LENGTH_SHORT).show();
@@ -125,15 +172,17 @@ public class ProfileFragment extends Fragment {
 
     private void getDeviceLocation() {
         try {
-            fusedLocationProviderClient.getLastLocation()
-                    .addOnSuccessListener(requireActivity(), location -> {
-                        if (location != null) {
-                            reverseGeocode(location.getLatitude(), location.getLongitude());
-                        } else {
-                            locationTextView.setText("📌 Location not found.");
-                        }
-                    });
-        } catch (SecurityException e) {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                fusedLocationProviderClient.getLastLocation()
+                        .addOnSuccessListener(requireActivity(), location -> {
+                            if (location != null) {
+                                reverseGeocode(location.getLatitude(), location.getLongitude());
+                            } else {
+                                locationTextView.setText("📌 Location not found.");
+                            }
+                        });
+            }
+        } catch (Exception e) {
             e.printStackTrace();
             locationTextView.setText("📌 Error fetching location.");
         }
@@ -149,7 +198,7 @@ public class ProfileFragment extends Fragment {
                 locationTextView.setText("📌 Address not found.");
             }
         } catch (IOException e) {
-            locationTextView.setText("📌 Geocoding service unavailable.");
+            locationTextView.setText("📌 Geocoding unavailable.");
         }
     }
 
