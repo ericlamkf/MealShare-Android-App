@@ -90,6 +90,35 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
+        // Observe authentication errors for field-specific error display
+        authViewModel.getAuthError().observe(this, error -> {
+            if (error != null) {
+                // Clear previous errors
+                register_email.setError(null);
+                register_password.setError(null);
+                
+                // Set error on appropriate field
+                switch (error) {
+                    case INVALID_EMAIL:
+                        register_email.setError(error.getMessage());
+                        register_email.requestFocus();
+                        break;
+                    case EMAIL_ALREADY_IN_USE:
+                        register_email.setError(error.getMessage());
+                        register_email.requestFocus();
+                        break;
+                    case WEAK_PASSWORD:
+                        register_password.setError(error.getMessage());
+                        register_password.requestFocus();
+                        break;
+                    // Other errors shown via toast
+                    default:
+                        break;
+                }
+                authViewModel.clearAuthError();
+            }
+        });
+
         // Keep pending registration details while ViewModel creates auth account
         // When authUser becomes available, continue the rest of registration (upload image / save data)
         authViewModel.getAuthUser().observe(this, firebaseUser -> {
