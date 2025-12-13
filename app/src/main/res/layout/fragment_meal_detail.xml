@@ -65,15 +65,16 @@
 
         <ImageButton
             android:id="@+id/btn_back"
-            android:layout_width="51dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_width="77dp"
+            android:layout_height="51dp"
+            android:layout_margin="10dp"
             android:backgroundTint="#FF9B62"
             android:contentDescription="Go Back"
             android:elevation="6dp"
             android:padding="8dp"
             android:scaleType="centerInside"
             android:src="@drawable/outline_arrow_back_24" />
+
 
     </LinearLayout>
 </LinearLayout>

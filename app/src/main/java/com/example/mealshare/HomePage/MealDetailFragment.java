@@ -40,6 +40,7 @@ public class MealDetailFragment extends Fragment {
 
         ImageButton backButton = view.findViewById(R.id.btn_back);
 
+
         // 2. Set Listener
         backButton.setOnClickListener(v -> {
             // This tells the Activity to behave as if the hardware back button was pressed.
