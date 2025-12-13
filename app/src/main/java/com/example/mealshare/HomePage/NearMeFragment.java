@@ -92,20 +92,39 @@ public class NearMeFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         fetchmeals();
     }
+    // Example for HalalFragment.java
     private void fetchmeals() {
         db.collection("meals")
-                .whereArrayContains("tags", "Halal") // or "Vegan"
+                .whereEqualTo("category", "Halal") // 👈 KEEP THIS! Don't delete your category filter
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .addSnapshotListener((snapshot, e) ->{
-                    if(e != null){
-                        return;
-                    }
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null) return;
 
-                    if(snapshot != null && !snapshot.isEmpty()){
+                    if (snapshot != null) {
                         List<Meal> fetchedMeals = new ArrayList<>();
-                        for(DocumentSnapshot doc : snapshot.getDocuments()){
+
+                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
                             Meal meal = doc.toObject(Meal.class);
-                            fetchedMeals.add(meal);
+
+                            if (meal != null) {
+                                meal.setMealId(doc.getId());
+
+                                // Safe Quantity Check
+                                int quantity = 0;
+                                try {
+                                    Object qtyObj = doc.get("quantity");
+                                    if (qtyObj instanceof String) {
+                                        quantity = Integer.parseInt((String) qtyObj);
+                                    } else if (qtyObj instanceof Long) {
+                                        quantity = ((Long) qtyObj).intValue();
+                                    }
+                                } catch (Exception ex) { quantity = 0; }
+
+                                // FILTER: Only add if Quantity > 0
+                                if (quantity > 0) {
+                                    fetchedMeals.add(meal);
+                                }
+                            }
                         }
                         mealAdapter.updateList(fetchedMeals);
                     }

@@ -15,11 +15,11 @@
 
         <ImageView
             android:id="@+id/imageView9"
-            android:layout_width="160dp"
-            android:layout_height="60dp"
+            android:layout_width="214dp"
+            android:layout_height="79dp"
             android:layout_marginTop="32dp"
-            android:src="@drawable/home_logo"
             android:scaleType="fitCenter"
+            android:src="@drawable/home_logo"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

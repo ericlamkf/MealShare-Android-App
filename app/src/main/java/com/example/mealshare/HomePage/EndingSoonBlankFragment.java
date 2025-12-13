@@ -107,6 +107,26 @@ public class EndingSoonBlankFragment extends Fragment {
                         for(DocumentSnapshot doc : snapshot.getDocuments()){
                             Meal meal = doc.toObject(Meal.class);
                             fetchedMeals.add(meal);
+
+                            if (meal != null) {
+                                meal.setMealId(doc.getId());
+
+                                // Safe Quantity Check
+                                int quantity = 0;
+                                try {
+                                    Object qtyObj = doc.get("quantity");
+                                    if (qtyObj instanceof String) {
+                                        quantity = Integer.parseInt((String) qtyObj);
+                                    } else if (qtyObj instanceof Long) {
+                                        quantity = ((Long) qtyObj).intValue();
+                                    }
+                                } catch (Exception ex) { quantity = 0; }
+
+                                // FILTER: Only add if Quantity > 0
+                                if (quantity > 0) {
+                                    fetchedMeals.add(meal);
+                                }
+                            }
                         }
                         mealAdapter.updateList(fetchedMeals);
                     }
