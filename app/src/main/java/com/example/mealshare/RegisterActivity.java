@@ -25,8 +25,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import androidx.lifecycle.ViewModelProvider;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -41,7 +41,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class RegisterActivity extends AppCompatActivity {
     private static final String DEFAULT_PROFILE_PIC_URL = "https://firebasestorage.googleapis.com/v0/b/mealshare-76ea8.firebasestorage.app/o/profile_pic.png?alt=media&token=2837c28e-a65f-4ee9-a286-1cc788f6f8ef";
-    private FirebaseAuth auth;
+    private AuthViewModel authViewModel;
     private EditText register_email, register_password, register_name, register_username;
     private Button register_btn;
     private ImageView btnRemovePic;
@@ -51,6 +51,9 @@ public class RegisterActivity extends AppCompatActivity {
     private FirebaseStorage storage;
     private Uri mImageUri = null;
     private ActivityResultLauncher<Intent> mImagePickerLauncher;
+    // pending registration data while ViewModel performs auth account creation
+    private String pendingName = null;
+    private String pendingUsername = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +76,36 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         // ALL firebase services initialisation
-        auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
+
+        // ViewModel for auth operations
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
+
+        // Observe auth results for registration flow
+        authViewModel.getMessage().observe(this, msg -> {
+            if (msg != null) {
+                Toast.makeText(RegisterActivity.this, msg, Toast.LENGTH_SHORT).show();
+                authViewModel.clearMessage();
+            }
+        });
+
+        // Keep pending registration details while ViewModel creates auth account
+        // When authUser becomes available, continue the rest of registration (upload image / save data)
+        authViewModel.getAuthUser().observe(this, firebaseUser -> {
+            if (firebaseUser != null && pendingName != null && pendingUsername != null) {
+                // Continue registration flow in activity (upload image or save default)
+                if (mImageUri != null) {
+                    uploadImageAndSaveData(firebaseUser, pendingName, pendingUsername);
+                } else {
+                    saveUserDataToFirestore(firebaseUser, pendingName, pendingUsername, DEFAULT_PROFILE_PIC_URL);
+                }
+                // clear pending
+                pendingName = null;
+                pendingUsername = null;
+                authViewModel.clearAuthUser();
+            }
+        });
 
         // ALL views initialisation
         register_email = findViewById(R.id.register_email);
@@ -182,24 +212,11 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void createUserInAuth(String userName, String userUsername, String userEmail, String userPassword){
-        auth.createUserWithEmailAndPassword(userEmail, userPassword).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if(task.isSuccessful()){
-                    FirebaseUser firebaseUser = auth.getCurrentUser();
-                    if (mImageUri != null) {
-                        // User *did* pick a photo, so upload it
-                        uploadImageAndSaveData(firebaseUser, userName, userUsername);
-                    } else {
-                        // User *did NOT* pick a photo, so use the default URL
-                        // We skip the upload steps and go straight to saving
-                        saveUserDataToFirestore(firebaseUser, userName, userUsername, DEFAULT_PROFILE_PIC_URL);
-                    }
-                }else{
-                    Toast.makeText(RegisterActivity.this, "Registration failed. " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        // Store pending registration details so observer (below) can continue once ViewModel finishes creating
+        pendingName = userName;
+        pendingUsername = userUsername;
+        // Delegate auth creation to ViewModel; result will be observed in onCreate
+        authViewModel.createUser(userEmail, userPassword);
     }
 
     private void uploadImageAndSaveData(FirebaseUser firebaseUser, String name, String username){

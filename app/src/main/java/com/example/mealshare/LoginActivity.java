@@ -14,14 +14,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
+import androidx.lifecycle.ViewModelProvider;
 
 public class LoginActivity extends AppCompatActivity {
-    private FirebaseAuth auth;
+    private AuthViewModel authViewModel;
     private EditText login_email, login_password;
     private Button login_btn;
 
@@ -46,7 +42,24 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        auth = FirebaseAuth.getInstance();
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
+
+        // Observe messages from ViewModel to show toasts
+        authViewModel.getMessage().observe(this, msg -> {
+            if (msg != null) {
+                Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
+                authViewModel.clearMessage();
+            }
+        });
+
+        // Observe authenticated user -> navigate to MainActivity on success
+        authViewModel.getAuthUser().observe(this, user -> {
+            if (user != null) {
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                finish();
+                authViewModel.clearAuthUser();
+            }
+        });
         login_email = findViewById(R.id.login_email);
         login_password = findViewById(R.id.login_password);
         login_btn = findViewById(R.id.login_btn);
@@ -59,20 +72,8 @@ public class LoginActivity extends AppCompatActivity {
 
                 if(!email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                    if(!password.isEmpty()) {
-                        auth.signInWithEmailAndPassword(email, password)
-                                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                                    @Override
-                                    public void onSuccess(AuthResult authResult) {
-                                        Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                        finish();
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(Exception e) {
-                                        Toast.makeText(LoginActivity.this, "Login Failed", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
+                        // Delegate sign-in to ViewModel
+                        authViewModel.login(email, password);
                    }else{
                        login_password.setError("Empty Fields Are not Allowed");
                    }
