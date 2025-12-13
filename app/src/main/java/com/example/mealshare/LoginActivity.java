@@ -52,6 +52,39 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        // Observe authentication errors to show field-specific errors
+        authViewModel.getAuthError().observe(this, error -> {
+            if (error != null) {
+                // Clear previous errors
+                login_email.setError(null);
+                login_password.setError(null);
+                
+                // Set error on appropriate field based on error type
+                switch (error) {
+                    case INVALID_EMAIL:
+                        login_email.setError(error.getMessage());
+                        login_email.requestFocus();
+                        break;
+                    case WRONG_PASSWORD:
+                        login_password.setError(error.getMessage());
+                        login_password.requestFocus();
+                        break;
+                    case USER_NOT_FOUND:
+                        login_email.setError(error.getMessage());
+                        login_email.requestFocus();
+                        break;
+                    case INVALID_CREDENTIALS:
+                        login_password.setError(error.getMessage());
+                        login_password.requestFocus();
+                        break;
+                    // For other errors, just show toast (already handled by message observer)
+                    default:
+                        break;
+                }
+                authViewModel.clearAuthError();
+            }
+        });
+
         // Observe authenticated user -> navigate to MainActivity on success
         authViewModel.getAuthUser().observe(this, user -> {
             if (user != null) {
