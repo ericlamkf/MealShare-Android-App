@@ -14,16 +14,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
+import androidx.lifecycle.ViewModelProvider;
 
 public class LoginActivity extends AppCompatActivity {
-    // private FirebaseAuth auth; // Removed as part of refactor
+    private AuthViewModel authViewModel;
     private EditText login_email, login_password;
     private Button login_btn;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,10 +42,24 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        // Initialize ViewModel
-        com.example.mealshare.SharedViewModel viewModel = new androidx.lifecycle.ViewModelProvider(this)
-                .get(com.example.mealshare.SharedViewModel.class);
+        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
+        // Observe messages from ViewModel to show toasts
+        authViewModel.getMessage().observe(this, msg -> {
+            if (msg != null) {
+                Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
+                authViewModel.clearMessage();
+            }
+        });
+
+        // Observe authenticated user -> navigate to MainActivity on success
+        authViewModel.getAuthUser().observe(this, user -> {
+            if (user != null) {
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                finish();
+                authViewModel.clearAuthUser();
+            }
+        });
         login_email = findViewById(R.id.login_email);
         login_password = findViewById(R.id.login_password);
         login_btn = findViewById(R.id.login_btn);
@@ -59,29 +70,17 @@ public class LoginActivity extends AppCompatActivity {
                 String email = login_email.getText().toString();
                 String password = login_password.getText().toString();
 
-                if (!email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    if (!password.isEmpty()) {
-                        viewModel.loginUser(email, password);
-                    } else {
-                        login_password.setError("Empty Fields Are not Allowed");
-                    }
-                } else if (email.isEmpty()) {
+                if(!email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                   if(!password.isEmpty()) {
+                        // Delegate sign-in to ViewModel
+                        authViewModel.login(email, password);
+                   }else{
+                       login_password.setError("Empty Fields Are not Allowed");
+                   }
+                }else if(email.isEmpty()){
                     login_email.setError("Email cannot be empty.");
-                } else {
+                }else{
                     login_email.setError("Please enter a valid email.");
-                }
-            }
-        });
-
-        // Observe Login Status
-        viewModel.getLoginStatus().observe(this, status -> {
-            if (status != null) {
-                if (status.startsWith("Success")) {
-                    Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                    finish();
-                } else {
-                    Toast.makeText(LoginActivity.this, status, Toast.LENGTH_SHORT).show();
                 }
             }
         });
