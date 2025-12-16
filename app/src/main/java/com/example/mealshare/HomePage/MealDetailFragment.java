@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -231,11 +232,58 @@ public class MealDetailFragment extends Fragment {
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(getContext(), "Request Sent Successfully!", Toast.LENGTH_SHORT).show();
                     updateButtonUI("Pending");
+                    updateMealCollection();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     btnRequest.setEnabled(true);
                     btnRequest.setText("Request This Food");
                 });
+    }
+
+    private void updateMealCollection() {
+        if (meal == null || meal.getMealId() == null) {
+            Toast.makeText(getContext(), "Meal data not available.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(db.collection("meals").document(meal.getMealId()));
+
+            String qtyStr = snapshot.getString("quantity");
+            if (qtyStr == null || qtyStr.isEmpty()) {
+                throw new FirebaseFirestoreException("Quantity not set",
+                        FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            int currentQty = Integer.parseInt(qtyStr);
+            if (currentQty <= 0) {
+                throw new FirebaseFirestoreException("No more meals available",
+                        FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            int newQty = currentQty - 1;
+            transaction.update(db.collection("meals").document(meal.getMealId()),
+                    "quantity", String.valueOf(newQty));
+
+            if (newQty == 0) {
+                transaction.update(db.collection("meals").document(meal.getMealId()),
+                        "status", "Reserved");
+            }
+
+            return newQty;
+        }).addOnSuccessListener(newQty -> {
+            Toast.makeText(getContext(), "Quantity updated to " + newQty, Toast.LENGTH_SHORT).show();
+            meal.setQuantity(String.valueOf(newQty));
+            if (newQty == 0) {
+                meal.setStatus("Reserved");
+                TextView qtyTv = getView().findViewById(R.id.detail_quantity);
+                if (qtyTv != null) {
+                    qtyTv.setText("0 available, all meals reserved");
+                }
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Failed to update: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
     }
 }
