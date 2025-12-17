@@ -97,17 +97,42 @@ public class AllFragment extends Fragment {
     private void fetchmeals() {
         db.collection("meals")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .addSnapshotListener((snapshot, e) ->{
-                    if(e != null){
-                        return;
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null) {
+                        return; // Handle error silently or log it
                     }
 
-                    if(snapshot != null && !snapshot.isEmpty()){
+                    if (snapshot != null) {
                         List<Meal> fetchedMeals = new ArrayList<>();
-                        for(DocumentSnapshot doc : snapshot.getDocuments()){
+
+                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
                             Meal meal = doc.toObject(Meal.class);
-                            fetchedMeals.add(meal);
+
+                            if (meal != null) {
+                                // 1. Set the ID (Good practice)
+                                meal.setMealId(doc.getId());
+
+                                // 2. Safe Quantity Check (Handles String "5" or Number 5)
+                                int quantity = 0;
+                                try {
+                                    Object qtyObj = doc.get("quantity");
+                                    if (qtyObj instanceof String) {
+                                        quantity = Integer.parseInt((String) qtyObj);
+                                    } else if (qtyObj instanceof Long) {
+                                        quantity = ((Long) qtyObj).intValue();
+                                    }
+                                } catch (Exception ex) {
+                                    quantity = 0; // If data is bad, treat as 0
+                                }
+
+                                // 3. 🔥 FILTER: Only add if Quantity > 0
+                                if (quantity > 0) {
+                                    fetchedMeals.add(meal);
+                                }
+                            }
                         }
+
+                        // Update the adapter with the FILTERED list
                         mealAdapter.updateList(fetchedMeals);
                     }
                 });

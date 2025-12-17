@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -81,6 +82,23 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        ImageView bellIcon = view.findViewById(R.id.bellicon);
+        final boolean[] isActive = {false}; // Simple toggle tracker
+
+        bellIcon.setOnClickListener(v -> {
+            if (isActive[0]) {
+                // Toggle OFF: Remove background
+                bellIcon.setBackgroundResource(0); // 0 removes the background
+                isActive[0] = false;
+                Toast.makeText(getContext(), "Notifications OFF", Toast.LENGTH_SHORT).show();
+            } else {
+                // Toggle ON: Set Orange Circle
+                bellIcon.setBackgroundResource(R.drawable.bg_orange_circle);
+                isActive[0] = true;
+                Toast.makeText(getContext(), "Notifications ON", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // 🔥 INITIALIZE SHARED VIEWMODEL (Scoped to the hosting Activity)
         sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);

@@ -1,6 +1,7 @@
 package com.example.mealshare;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -24,7 +25,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 // Import your fragments
 // import com.example.mealshare.HomePage.MyActivityFragment; // UNCOMMENT THIS if you have it
 // import com.example.mealshare.ProfilePage.MyRequestsFragment; // UNCOMMENT THIS if you have it
-// import com.example.mealshare.ProfilePage.EditProfileFragment; // UNCOMMENT THIS
+import com.example.mealshare.EditProfileFragment;
 
 import com.example.mealshare.ProfilePage.MyListsFragment;
 import com.example.mealshare.ProfilePage.MyRequestsFragment;
@@ -67,7 +68,7 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_profile, container, false);
     }
 
@@ -104,6 +105,21 @@ public class ProfileFragment extends Fragment {
         // 3. Setup Location
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         checkLocationPermission();
+
+        Button btnLogout = view.findViewById(R.id.BtnLogout);
+
+        btnLogout.setOnClickListener(v -> {
+            // 1. Sign out from Firebase
+            FirebaseAuth.getInstance().signOut();
+
+            // 2. Redirect to Login Activity
+            Intent intent = new Intent(getActivity(), LoginActivity.class);
+
+            // Clear back stack so user can't press "Back" to return
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            startActivity(intent);
+        });
     }
 
     @Override
@@ -112,16 +128,16 @@ public class ProfileFragment extends Fragment {
         loadUserData(); // Reload data when returning to this screen
     }
 
-    private void loadUserData(){
+    private void loadUserData() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if (currentUser != null) {
             DocumentReference userRef = db.collection("users").document(currentUser.getUid());
 
             userRef.get().addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
-                    if(document.exists()){
+                    if (document.exists()) {
 
                         // Extract Data
                         String name = document.getString("name");
@@ -131,11 +147,12 @@ public class ProfileFragment extends Fragment {
                         String profileUrl = document.getString("profileImageUrl");
 
                         // Update Text Views
-                        if(name != null) {
+                        if (name != null) {
                             userNameTextView.setText(name);
                             tvName.setText(name);
                         }
-                        if(email != null) tvEmail.setText(email);
+                        if (email != null)
+                            tvEmail.setText(email);
 
                         // Handle empty fields gracefully
                         tvPhone.setText(phone != null && !phone.isEmpty() ? phone : "Phone not set");
@@ -146,7 +163,7 @@ public class ProfileFragment extends Fragment {
                             Glide.with(this)
                                     .load(profileUrl)
                                     .placeholder(R.drawable.profile_pic) // Default image while loading
-                                    .error(R.drawable.profile_pic)       // Default if error
+                                    .error(R.drawable.profile_pic) // Default if error
                                     .into(profileImageView);
                         }
 
@@ -163,8 +180,10 @@ public class ProfileFragment extends Fragment {
     }
 
     private void checkLocationPermission() {
-        if(ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        if (ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
+                    LOCATION_PERMISSION_REQUEST_CODE);
         } else {
             getDeviceLocation();
         }
@@ -172,7 +191,8 @@ public class ProfileFragment extends Fragment {
 
     private void getDeviceLocation() {
         try {
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 fusedLocationProviderClient.getLastLocation()
                         .addOnSuccessListener(requireActivity(), location -> {
                             if (location != null) {
@@ -203,9 +223,11 @@ public class ProfileFragment extends Fragment {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             getDeviceLocation();
         } else {
             locationTextView.setText("📌 Location access denied.");
