@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -229,6 +230,8 @@ public class MealDetailFragment extends Fragment {
         db.collection("requests")
                 .add(requestMap)
                 .addOnSuccessListener(documentReference -> {
+                    String newRequestId = documentReference.getId();
+                    createChatRoom(newRequestId, currentUser.getUid(), meal.getUserId(), meal.getFoodName());
                     Toast.makeText(getContext(), "Request Sent Successfully!", Toast.LENGTH_SHORT).show();
                     updateButtonUI("Pending");
                 })
@@ -237,5 +240,23 @@ public class MealDetailFragment extends Fragment {
                     btnRequest.setEnabled(true);
                     btnRequest.setText("Request This Food");
                 });
+    }
+
+    private void createChatRoom(String requestId, String requesterId, String donorId, String foodName) {
+        Map<String, Object> chatMap = new HashMap<>();
+
+        // "participants" array is KEY. It lets us search: "Show chats where I am involved"
+        // Make sure to import java.util.Arrays;
+        chatMap.put("participants", Arrays.asList(requesterId, donorId));
+
+        chatMap.put("lastMessage", "Request sent for " + foodName); // The first message users see
+        chatMap.put("lastMessageTime", System.currentTimeMillis());
+        chatMap.put("foodName", foodName);
+        chatMap.put("requestId", requestId);
+
+        // Use the SAME ID as the Request so we can easily find it later
+        db.collection("chats").document(requestId)
+                .set(chatMap)
+                .addOnSuccessListener(aVoid -> android.util.Log.d("Chat", "Chat room created!"));
     }
 }
