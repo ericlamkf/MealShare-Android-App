@@ -17,46 +17,19 @@
             android:id="@+id/WelcomeHome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="36dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="84dp"
             android:fontFamily="@font/poppins_medium"
             android:text="Welcome,"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/UserName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="-5dp"
-            android:fontFamily="@font/poppins_bold"
-            android:text="loading..."
-            android:textColor="#0F0F0F"
-            android:textSize="32sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/WelcomeHome" />
-
-        <ImageView
-            android:id="@+id/bellicon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="52dp"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/bell_icon"
-            android:padding="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <ImageView
             android:id="@+id/imageView6"
             android:layout_width="375dp"
             android:layout_height="208dp"
-            android:layout_marginTop="124dp"
+            android:layout_marginTop="172dp"
             android:src="@drawable/home_banner"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.555"
@@ -67,8 +40,8 @@
             android:id="@+id/bannerTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="28dp"
-            android:layout_marginTop="28dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="52dp"
             android:fontFamily="@font/karla_extrabold"
             android:text="Start Sharing\nYour Food Now."
             android:textColor="#FFFFFF"
@@ -80,8 +53,8 @@
             android:id="@+id/BtnToAdd"
             android:layout_width="166dp"
             android:layout_height="45dp"
-            android:layout_marginStart="28dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="8dp"
             android:backgroundTint="#FEAA3E"
             android:fontFamily="@font/poppins_medium"
             android:text="Donate Now"
@@ -95,7 +68,7 @@
             android:id="@+id/imageView7"
             android:layout_width="26dp"
             android:layout_height="21dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="12dp"
             android:layout_marginEnd="16dp"
             android:src="@drawable/next_icon"
             app:layout_constraintEnd_toEndOf="@+id/BtnToAdd"
@@ -111,6 +84,33 @@
             app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/imageView6" />
+
+        <TextView
+            android:id="@+id/UserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="-5dp"
+            android:fontFamily="@font/poppins_bold"
+            android:text="loading..."
+            android:textColor="#0F0F0F"
+            android:textSize="32sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/WelcomeHome" />
+
+        <ImageView
+            android:id="@+id/bellicon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="100dp"
+            android:layout_marginEnd="20dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/bell_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

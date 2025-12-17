@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
         replaceFragment(new HomeFragment());
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
+            v.setPadding(systemBars.left, 0, systemBars.right, 0);
             return insets;
         });
 
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.add) {
                 replaceFragment(new AddFragment());
             } else if (itemId == R.id.explore) {
-                replaceFragment(new ExploreFragment());
+                replaceFragment(new ChatFragment());
             } else if (itemId == R.id.profile) {
                 replaceFragment(new ProfileFragment());
             }
