@@ -1,6 +1,7 @@
-package com.example.mealshare.ChatPage; // ⚠️ Check package name
+package com.example.mealshare.ChatPage;
 
 import android.content.Context;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,17 +42,33 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ChatMessageModel msg = messageList.get(position);
 
-        // 🔥 LOGIC: Check who sent the message
-        if (msg.getSenderId().equals(currentUserId)) {
-            // MY MESSAGE: Show Right Bubble, Hide Left
+        String formattedTime = "Now";
+        if (msg.getTimestamp() > 0) {
+            // Use 'android.text.format.DateFormat' for easy formatting
+            formattedTime = DateFormat.format("hh:mm a", msg.getTimestamp()).toString();
+        }
+
+        if (msg.getSenderId() != null && msg.getSenderId().equals(currentUserId)) {
+            // --- MY MESSAGE (Right Side) ---
             holder.sentLayout.setVisibility(View.VISIBLE);
             holder.receiveLayout.setVisibility(View.GONE);
+
             holder.sentTv.setText(msg.getMessage());
+
+            // Set the time on the RIGHT text view
+            holder.timeSent.setText(formattedTime);
+            holder.timeSent.setVisibility(View.VISIBLE);
+
         } else {
-            // THEIR MESSAGE: Show Left Bubble, Hide Right
+            // --- THEIR MESSAGE (Left Side) ---
             holder.sentLayout.setVisibility(View.GONE);
             holder.receiveLayout.setVisibility(View.VISIBLE);
+
             holder.receiveTv.setText(msg.getMessage());
+
+            // Set the time on the LEFT text view
+            holder.timeReceive.setText(formattedTime);
+            holder.timeReceive.setVisibility(View.VISIBLE);
         }
     }
 
@@ -63,6 +80,7 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder {
         LinearLayout sentLayout, receiveLayout;
         TextView sentTv, receiveTv;
+        TextView timeReceive, timeSent;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -71,6 +89,9 @@ public class ChatRoomAdapter extends RecyclerView.Adapter<ChatRoomAdapter.ViewHo
             receiveLayout = itemView.findViewById(R.id.layout_receive);
             sentTv = itemView.findViewById(R.id.tv_msg_sent);
             receiveTv = itemView.findViewById(R.id.tv_msg_receive);
+
+            timeReceive = itemView.findViewById(R.id.text_message_time_left);
+            timeSent = itemView.findViewById(R.id.text_message_time_right);
         }
     }
 }
