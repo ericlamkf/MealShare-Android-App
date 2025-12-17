@@ -15,7 +15,10 @@
 
 | Home Page | Add Donation | Registration |
 |:---:|:---:|:---:|
-| <img src="screenshots/home.png" width="200" alt="Home Page"> | <img src="screenshots/add.png" width="200" alt="Add Page"> | <img src="screenshots/register.png" width="200" alt="Register"> |
+| <img width="426" height="894" alt="Home Page" src="https://github.com/user-attachments/assets/3b516bb8-3ee4-4246-9247-cf03dc1133da" />
+ | <img width="425" height="894" alt="Add Page" src="https://github.com/user-attachments/assets/b2063d1d-cd4a-41d9-b3c6-8dc25ca6d92f" />
+ | <img width="447" height="895" alt="Register Page" src="https://github.com/user-attachments/assets/f5c56ac9-e1a5-4628-954b-40348cb36bd0" />
+ |
 | *View nearby donations* | *Upload food details* | *Create an account* |
 
 *(Note: Please ensure you create a `screenshots` folder in your project root and add images named `home.png`, `add.png`, and `register.png`)*
