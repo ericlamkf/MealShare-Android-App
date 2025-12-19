@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout; // Import added
+import android.widget.TextView;     // Import added
 
 import com.example.mealshare.R;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -20,61 +22,37 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link NearMeFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class NearMeFragment extends Fragment {
     private RecyclerView recyclerView;
     private MealAdapter mealAdapter;
     private List<Meal> mealList;
     private FirebaseFirestore db;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    // 🔥 NEW: Variable for the Empty State Layout
+    private LinearLayout emptyStateLayout;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    // ... (Your params and constructor code remains the same) ...
+    // Skipping boilerplate params code for clarity...
 
     public NearMeFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment NearMeFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static NearMeFragment newInstance(String param1, String param2) {
         NearMeFragment fragment = new NearMeFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+        // ... existing code ...
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        // ... existing code ...
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_near_me, container, false);
     }
 
@@ -82,8 +60,13 @@ public class NearMeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // 1. Setup RecyclerView
         recyclerView = view.findViewById(R.id.recycler_view_all);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // 2. 🔥 NEW: Setup Empty State Layout
+        // Make sure this ID matches what you put in your XML!
+        emptyStateLayout = view.findViewById(R.id.layout_empty_state);
 
         mealList = new ArrayList<>();
         mealAdapter = new MealAdapter(getContext(), mealList, this::onMealClick);
@@ -92,10 +75,10 @@ public class NearMeFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         fetchmeals();
     }
-    // Example for HalalFragment.java
+
     private void fetchmeals() {
         db.collection("meals")
-                .whereEqualTo("category", "Halal") // 👈 KEEP THIS! Don't delete your category filter
+                .whereEqualTo("category", "Halal")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshot, e) -> {
                     if (e != null) return;
@@ -126,25 +109,40 @@ public class NearMeFragment extends Fragment {
                                 }
                             }
                         }
+
+                        // 🔥 NEW LOGIC: Check if the Final List is Empty
+                        if (fetchedMeals.isEmpty()) {
+                            // Empty? Show the "No Halal Food" message
+                            recyclerView.setVisibility(View.GONE);
+                            if (emptyStateLayout != null) {
+                                emptyStateLayout.setVisibility(View.VISIBLE);
+
+                                // Optional: Update text specifically for this fragment
+                                TextView emptyText = emptyStateLayout.findViewById(R.id.tv_empty_message);
+                                if (emptyText != null) emptyText.setText("No Halal meals found nearby.");
+                            }
+                        } else {
+                            // Not Empty? Show the list
+                            recyclerView.setVisibility(View.VISIBLE);
+                            if (emptyStateLayout != null) {
+                                emptyStateLayout.setVisibility(View.GONE);
+                            }
+                        }
+
                         mealAdapter.updateList(fetchedMeals);
                     }
                 });
     }
 
     public void onMealClick(Meal meal) {
-        // 1. Create Detail Fragment
         MealDetailFragment detailFragment = new MealDetailFragment();
-
-        // 2. Pass the Meal object
         Bundle args = new Bundle();
         args.putSerializable("meal_data", meal);
         detailFragment.setArguments(args);
 
-        // 3. Navigate (Replace the WHOLE screen, not just the inner part)
-        // Note: Use requireActivity().getSupportFragmentManager() to cover the whole screen
         requireActivity().getSupportFragmentManager().beginTransaction()
-                .replace(R.id.frameLayout, detailFragment) // R.id.frameLayout is in MainActivity
-                .addToBackStack(null) // Allows user to press Back button to return
+                .replace(R.id.frameLayout, detailFragment)
+                .addToBackStack(null)
                 .commit();
     }
 }

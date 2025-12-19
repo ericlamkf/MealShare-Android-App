@@ -21,14 +21,14 @@
         app:layout_constraintHorizontal_bias="0.051"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.023" />
+        app:layout_constraintVertical_bias="0.107" />
 
     <TextView
         android:id="@+id/tvRate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="-5dp"
         android:fontFamily="@font/poppins_bold"
         android:text="Rate"
         android:textSize="27sp"
@@ -39,8 +39,8 @@
         android:id="@+id/ivRateBackground"
         android:layout_width="271dp"
         android:layout_height="65dp"
-        android:layout_marginTop="132dp"
-        android:layout_marginEnd="68dp"
+        android:layout_marginTop="188dp"
+        android:layout_marginEnd="132dp"
         android:src="@drawable/rating_rectangle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -50,11 +50,11 @@
         android:layout_width="239dp"
         android:layout_height="54dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="12dp"
         android:background="#FEAA3E"
         android:numStars="5"
-        android:stepSize="1"
         android:progressTint="#FFD700"
+        android:stepSize="1"
         app:layout_constraintEnd_toEndOf="@+id/ivRateBackground"
         app:layout_constraintTop_toTopOf="@+id/ivRateBackground" />
 
@@ -63,7 +63,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="212dp"
+        android:layout_marginTop="264dp"
         android:fontFamily="@font/poppins_medium"
         android:text="Give them some feedback ❤️"
         android:textSize="20sp"
@@ -75,7 +75,8 @@
         android:id="@+id/btnSubmit"
         android:layout_width="136dp"
         android:layout_height="51dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="244dp"
         android:backgroundTint="#FEAA3E"
         android:fontFamily="@font/poppins_bold"
         android:text="Submit"
@@ -86,9 +87,9 @@
 
     <EditText
         android:id="@+id/feedback_box"
-        android:layout_width="383dp"
-        android:layout_height="404dp"
-        android:layout_marginTop="12dp"
+        android:layout_width="391dp"
+        android:layout_height="351dp"
+        android:layout_marginTop="8dp"
         android:background="@drawable/feedback_rectangle"
         android:gravity="top|start"
         android:hint="Type something here…"

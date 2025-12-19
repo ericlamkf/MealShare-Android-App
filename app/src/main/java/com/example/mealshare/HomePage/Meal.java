@@ -1,8 +1,7 @@
-package com.example.mealshare.HomePage; // Check your package name
-
-import com.google.firebase.Timestamp;
+package com.example.mealshare.HomePage;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 public class Meal implements Serializable {
@@ -13,8 +12,16 @@ public class Meal implements Serializable {
     private String imageUrl;
     private String userId;
     private List<String> tags;
-    private Timestamp expiryTime; // Firestore Timestamp
-    private Timestamp timestamp; // Creation time
+    private Date expiryTime; // Changed from Timestamp
+    private Date timestamp; // Changed from Timestamp
+
+    public void setExpiryTime(Date expiryTime) {
+        this.expiryTime = expiryTime;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
 
     private String status; // Available or Reserved
     private String receiverId; // Who claimed it
@@ -30,7 +37,7 @@ public class Meal implements Serializable {
 
     public Meal(String foodName, String description, String quantity, String location,
             String imageUrl, String userId, List<String> tags,
-            Timestamp expiryTime, Timestamp timestamp, String donorId) {
+            Date expiryTime, Date timestamp, String donorId) {
         this.foodName = foodName;
         this.description = description;
         this.quantity = quantity;
@@ -74,8 +81,12 @@ public class Meal implements Serializable {
         return tags;
     }
 
-    public Timestamp getExpiryTime() {
+    public Date getExpiryTime() {
         return expiryTime;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
     }
 
     // New Getters

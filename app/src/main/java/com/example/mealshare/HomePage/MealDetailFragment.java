@@ -1,6 +1,7 @@
 package com.example.mealshare.HomePage;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +35,6 @@ public class MealDetailFragment extends Fragment {
     private FirebaseAuth mAuth;
     private Button btnRequest;
 
-    // 🔥 NEW: Text Views for Donor Info
     private TextView donorNameTv, donorPhoneTv, donorRateTv;
 
     @Override
@@ -65,11 +66,9 @@ public class MealDetailFragment extends Fragment {
         TextView qtyTv = view.findViewById(R.id.detail_quantity);
         TextView descTv = view.findViewById(R.id.detail_description);
 
-        // 🔥 NEW: Find the Donor Views
         donorNameTv = view.findViewById(R.id.detail_donor_name);
         donorPhoneTv = view.findViewById(R.id.detail_donor_phone);
-        donorRateTv = view.findViewById(R.id.donor_feedback);
-
+        donorRateTv = view.findViewById(R.id.donor_feedback); // From Left
 
         btnRequest = view.findViewById(R.id.btn_request);
 
@@ -83,7 +82,6 @@ public class MealDetailFragment extends Fragment {
                 Glide.with(this).load(meal.getImageUrl()).into(imageView);
             }
 
-            // 🔥 NEW: Load the donor details
             fetchDonorDetails(meal.getUserId());
 
             if (mAuth.getCurrentUser() != null) {
@@ -94,7 +92,6 @@ public class MealDetailFragment extends Fragment {
         btnRequest.setOnClickListener(v -> sendRequestToFirestore());
     }
 
-    // 🔥 NEW METHOD: Fetch Donor Name and Phone
     private void fetchDonorDetails(String donorId) {
         if (donorId == null || donorId.isEmpty()) {
             donorNameTv.setText("Unknown Donor");
@@ -113,16 +110,15 @@ public class MealDetailFragment extends Fragment {
                             donorNameTv.setText("👤 Donor: Anonymous");
                         }
 
-                        // Get Phone (Make sure your database field is named "phone" or "phoneNumber")
+                        // Get Phone
                         String phone = documentSnapshot.getString("phone");
                         if (phone != null && !phone.isEmpty()) {
                             donorPhoneTv.setText("📞 Contact: " + phone);
                         } else {
-                            // Logic requested: If empty, show this specific text
                             donorPhoneTv.setText("📞 Contact: Phone number not filled");
                         }
 
-                        // ⭐ Fetch rating info safely
+                        // ⭐ Fetch rating info safely (From Left File)
                         Long highestRating = documentSnapshot.getLong("highestRating");
                         Long highestRatingCount = documentSnapshot.getLong("highestRatingCount");
 
@@ -133,7 +129,6 @@ public class MealDetailFragment extends Fragment {
 
                         if (highestRating == 0 || highestRatingCount == 0) {
                             donorRateTv.setText("⭐ Rating: 0 (0 reviews)");
-                            return;
                         } else {
                             donorRateTv.setText(
                                     "⭐ " + highestRating + " stars (" + highestRatingCount + " reviews)"
@@ -251,9 +246,16 @@ public class MealDetailFragment extends Fragment {
         db.collection("requests")
                 .add(requestMap)
                 .addOnSuccessListener(documentReference -> {
+                    String newRequestId = documentReference.getId();
+
+                    // From Right: Create Chat Room
+                    createChatRoom(newRequestId, currentUser.getUid(), meal.getUserId(), meal.getFoodName());
+
+                    // From Left: Update Quantity
+                    updateMealCollection();
+
                     Toast.makeText(getContext(), "Request Sent Successfully!", Toast.LENGTH_SHORT).show();
                     updateButtonUI("Pending");
-                    updateMealCollection();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -262,6 +264,22 @@ public class MealDetailFragment extends Fragment {
                 });
     }
 
+    // From Right: Chat Room Creation
+    private void createChatRoom(String requestId, String requesterId, String donorId, String foodName) {
+        Map<String, Object> chatMap = new HashMap<>();
+
+        chatMap.put("participants", Arrays.asList(requesterId, donorId));
+        chatMap.put("lastMessage", "Request sent for " + foodName);
+        chatMap.put("lastMessageTime", System.currentTimeMillis());
+        chatMap.put("foodName", foodName);
+        chatMap.put("requestId", requestId);
+
+        db.collection("chats").document(requestId)
+                .set(chatMap)
+                .addOnSuccessListener(aVoid -> Log.d("Chat", "Chat room created!"));
+    }
+
+    // From Left: Quantity Update
     private void updateMealCollection() {
         if (meal == null || meal.getMealId() == null) {
             Toast.makeText(getContext(), "Meal data not available.", Toast.LENGTH_SHORT).show();
