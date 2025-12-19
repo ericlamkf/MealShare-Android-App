@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.mealshare.FeedbackFragment;
 import com.example.mealshare.HomeFragment;
 import com.example.mealshare.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,7 +28,7 @@ import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MyRequestsFragment extends Fragment {
+public class MyRequestsFragment extends Fragment implements MyRequestsAdapter.OnFeedbackButtonClickListener {
 
     private RecyclerView recyclerView;
     private MyRequestsAdapter adapter;
@@ -65,6 +66,8 @@ public class MyRequestsFragment extends Fragment {
         adapter = new MyRequestsAdapter(getContext(), requestList);
         recyclerView.setAdapter(adapter);
 
+        adapter.setOnFeedbackButtonClickListener(this);
+
         // Since Profile is usually a separate tab, we might need to rely on the user navigating via bottom bar,
         // OR we can just simulate a "Back" press if they came here from somewhere else.
         btnBrowse.setOnClickListener(v -> {
@@ -81,6 +84,23 @@ public class MyRequestsFragment extends Fragment {
         });
 
         loadMyRequests();
+    }
+
+    @Override
+    public void onFeedbackClick(String donorId, String requestId) {
+        FeedbackFragment feedbackFragment = new FeedbackFragment();
+
+        Bundle args = new Bundle();
+        args.putString("DONOR_ID_KEY", donorId);
+        args.putString("REQUEST_ID_KEY", requestId);
+        feedbackFragment.setArguments(args);
+
+        if (getActivity() != null) {
+            getActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frameLayout, feedbackFragment)
+                    .addToBackStack(null) // Allows user to press "back" to return to this screen
+                    .commit();
+        }
     }
 
     private void loadMyRequests() {

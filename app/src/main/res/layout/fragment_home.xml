@@ -41,7 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="32dp"
-            android:layout_marginTop="52dp"
+            android:layout_marginTop="32dp"
             android:fontFamily="@font/karla_extrabold"
             android:text="Start Sharing\nYour Food Now."
             android:textColor="#FFFFFF"
@@ -54,7 +54,7 @@
             android:layout_width="166dp"
             android:layout_height="45dp"
             android:layout_marginStart="32dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:backgroundTint="#FEAA3E"
             android:fontFamily="@font/poppins_medium"
             android:text="Donate Now"
@@ -63,16 +63,6 @@
             app:cornerRadius="10dp"
             app:layout_constraintStart_toStartOf="@+id/imageView6"
             app:layout_constraintTop_toBottomOf="@+id/bannerTitle" />
-
-        <ImageView
-            android:id="@+id/imageView7"
-            android:layout_width="26dp"
-            android:layout_height="21dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="16dp"
-            android:src="@drawable/next_icon"
-            app:layout_constraintEnd_toEndOf="@+id/BtnToAdd"
-            app:layout_constraintTop_toTopOf="@+id/BtnToAdd" />
 
         <ImageView
             android:id="@+id/imageView9"
@@ -97,6 +87,16 @@
             android:textSize="32sp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/WelcomeHome" />
+
+        <ImageView
+            android:id="@+id/imageView7"
+            android:layout_width="26dp"
+            android:layout_height="21dp"
+            android:layout_marginTop="11dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/next_icon"
+            app:layout_constraintEnd_toEndOf="@+id/BtnToAdd"
+            app:layout_constraintTop_toTopOf="@+id/BtnToAdd" />
 
         <ImageView
             android:id="@+id/bellicon"

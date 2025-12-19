@@ -32,26 +32,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/ivRateBox"
-        android:layout_width="271dp"
-        android:layout_height="65dp"
-        android:layout_marginTop="464dp"
-        android:layout_marginEnd="68dp"
-        android:src="@drawable/rating_box_white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <RatingBar
-        android:id="@+id/ratingBar"
-        android:layout_width="239dp"
-        android:layout_height="54dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:background="#FFF2E2"
-        app:layout_constraintEnd_toEndOf="@+id/ivRateBox"
-        app:layout_constraintTop_toTopOf="@+id/ivRateBox" />
-
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
@@ -82,13 +62,20 @@
         android:id="@+id/ivVendorPhoto"
         android:layout_width="280dp"
         android:layout_height="216dp"
-        android:layout_marginBottom="24dp"
         android:scaleType="centerCrop"
         android:src="@drawable/default_vendor"
-        app:layout_constraintBottom_toTopOf="@+id/ivRateBox"
-        app:layout_constraintEnd_toEndOf="@+id/ivRateBox"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/ivRateBox" />   <!-- fallback image -->
+        tools:layout_editor_absoluteX="72dp"
+        tools:layout_editor_absoluteY="224dp" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        android:text="Stars⭐"
+        app:layout_constraintBottom_toTopOf="@+id/btnTqHome"
+        app:layout_constraintEnd_toEndOf="@+id/btnTqHome"
+        app:layout_constraintStart_toStartOf="@+id/btnTqHome" />   <!-- fallback image -->
 
 
 
