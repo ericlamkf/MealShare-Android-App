@@ -34,7 +34,7 @@ public class MealDetailFragment extends Fragment {
     private Button btnRequest;
 
     // 🔥 NEW: Text Views for Donor Info
-    private TextView donorNameTv, donorPhoneTv;
+    private TextView donorNameTv, donorPhoneTv, donorRateTv;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,6 +68,8 @@ public class MealDetailFragment extends Fragment {
         // 🔥 NEW: Find the Donor Views
         donorNameTv = view.findViewById(R.id.detail_donor_name);
         donorPhoneTv = view.findViewById(R.id.detail_donor_phone);
+        donorRateTv = view.findViewById(R.id.donor_feedback);
+
 
         btnRequest = view.findViewById(R.id.btn_request);
 
@@ -119,10 +121,29 @@ public class MealDetailFragment extends Fragment {
                             // Logic requested: If empty, show this specific text
                             donorPhoneTv.setText("📞 Contact: Phone number not filled");
                         }
+
+                        // ⭐ Fetch rating info safely
+                        Long highestRating = documentSnapshot.getLong("highestRating");
+                        Long highestRatingCount = documentSnapshot.getLong("highestRatingCount");
+
+                        if (highestRating == null || highestRatingCount == null) {
+                            donorRateTv.setText("⭐ This user does not have a rating yet");
+                            return;
+                        }
+
+                        if (highestRating == 0 || highestRatingCount == 0) {
+                            donorRateTv.setText("⭐ Rating: 0 (0 reviews)");
+                            return;
+                        } else {
+                            donorRateTv.setText(
+                                    "⭐ " + highestRating + " stars (" + highestRatingCount + " reviews)"
+                            );
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
                     donorNameTv.setText("Error loading donor info");
+                    donorRateTv.setText("⭐ Rating unavailable");
                 });
     }
 

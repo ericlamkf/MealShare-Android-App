@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton; // Import ImageButton
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.example.mealshare.FeedbackFragment;
 import com.example.mealshare.R;
 import com.google.firebase.firestore.FirebaseFirestore; // Import Firestore
 
@@ -63,11 +65,33 @@ public class MyRequestsAdapter extends RecyclerView.Adapter<MyRequestsAdapter.Vi
         if ("Completed".equals(status) || "Rejected".equals(status)) {
             // IF DONE: Show Delete Button
             holder.deleteBtn.setVisibility(View.VISIBLE);
+            holder.feedbackBtn.setVisibility(View.VISIBLE);
 
             // Set Text
             if ("Completed".equals(status)) {
                 holder.statusTv.setText("Collected");
                 holder.statusTv.setBackgroundColor(Color.GRAY);
+                holder.feedbackBtn.setVisibility(View.GONE);
+
+                // 🔥 Check if feedback already exists
+                db.collection("feedbacks")
+                        .document(request.getRequestId())
+                        .get()
+                        .addOnSuccessListener(doc -> {
+                            if (!doc.exists()) {
+                                // No feedback yet → show button
+                                holder.feedbackBtn.setVisibility(View.VISIBLE);
+                            }
+                        });
+
+                holder.feedbackBtn.setOnClickListener(v -> {
+                    if (feedbackListener != null) {
+                        feedbackListener.onFeedbackClick(
+                                request.getDonorId(),
+                                request.getRequestId()
+                        );
+                    }
+                });
             } else {
                 holder.statusTv.setText("Rejected");
                 holder.statusTv.setBackgroundColor(Color.RED);
@@ -75,10 +99,18 @@ public class MyRequestsAdapter extends RecyclerView.Adapter<MyRequestsAdapter.Vi
 
             // Set Delete Action
             holder.deleteBtn.setOnClickListener(v -> deleteRequest(request.getRequestId()));
+            holder.feedbackBtn.setOnClickListener(v -> {
+                // Use the listener to pass the donorId
+                if (feedbackListener != null && request.getDonorId() != null) {
+                    feedbackListener.onFeedbackClick(request.getDonorId(), request.getRequestId());
+                }
+            });
+
 
         } else {
             // IF ACTIVE: Hide Delete Button
             holder.deleteBtn.setVisibility(View.GONE);
+            holder.feedbackBtn.setVisibility(View.GONE);
 
             if ("Pending".equals(status)) {
                 holder.statusTv.setText("Pending");
@@ -104,15 +136,28 @@ public class MyRequestsAdapter extends RecyclerView.Adapter<MyRequestsAdapter.Vi
                 });
     }
 
-    @Override
+    private OnFeedbackButtonClickListener feedbackListener; // Add this
+
+    public interface OnFeedbackButtonClickListener {
+        void onFeedbackClick(String donorId, String requestId);
+    }
+
+    public void setOnFeedbackButtonClickListener(OnFeedbackButtonClickListener listener) {
+        this.feedbackListener = listener;
+    }
+
+
+        @Override
     public int getItemCount() {
         return requestList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+
         ImageView bgImageView;
         TextView foodNameTv, locationTv, statusTv, requestIdTv;
         ImageButton deleteBtn;
+        Button feedbackBtn;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -122,6 +167,7 @@ public class MyRequestsAdapter extends RecyclerView.Adapter<MyRequestsAdapter.Vi
             statusTv = itemView.findViewById(R.id.tv_sent_status);
             requestIdTv = itemView.findViewById(R.id.tv_req_id_display);
             deleteBtn = itemView.findViewById(R.id.btn_delete_request); // Find ID
+            feedbackBtn = itemView.findViewById(R.id.btn_feedback); // Find ID
         }
     }
 }

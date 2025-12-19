@@ -160,7 +160,7 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.ViewHo
         ImageView foodBgImageView;
         ImageButton deleteBtn; // Ensure XML has this ID
         TextView statusTv, foodNameTv, requesterNameTv;
-        Button confirmBtn;
+        Button confirmBtn; // Ensure XML has these IDs;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
