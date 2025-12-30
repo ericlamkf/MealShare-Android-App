@@ -135,8 +135,14 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.ViewHo
                 throw new FirebaseFirestoreException("Out of stock!", FirebaseFirestoreException.Code.ABORTED);
             }
 
-            transaction.update(mealRef, "quantity", String.valueOf(currentQty - 1));
+            long newQty = currentQty - 1;
+            transaction.update(mealRef, "quantity", String.valueOf(newQty));
             transaction.update(requestRef, "status", "Completed");
+
+            // 🔥 FIX: Mark as Out of Stock if quantity hits 0
+            if (newQty == 0) {
+                transaction.update(mealRef, "status", "Out of stock");
+            }
 
             return null;
 

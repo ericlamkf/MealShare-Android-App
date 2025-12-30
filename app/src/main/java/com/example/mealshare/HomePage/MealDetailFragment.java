@@ -248,11 +248,11 @@ public class MealDetailFragment extends Fragment {
                 .addOnSuccessListener(documentReference -> {
                     String newRequestId = documentReference.getId();
 
-                    // From Right: Create Chat Room
+                    // Create Chat Room
                     createChatRoom(newRequestId, currentUser.getUid(), meal.getUserId(), meal.getFoodName());
 
-                    // From Left: Update Quantity
-                    updateMealCollection();
+                    // NOTE: We do NOT decrement quantity here anymore.
+                    // The quantity will be decremented when the donor confirms the handover in "My Lists".
 
                     Toast.makeText(getContext(), "Request Sent Successfully!", Toast.LENGTH_SHORT).show();
                     updateButtonUI("Pending");
@@ -264,7 +264,7 @@ public class MealDetailFragment extends Fragment {
                 });
     }
 
-    // From Right: Chat Room Creation
+    // Chat Room Creation
     private void createChatRoom(String requestId, String requesterId, String donorId, String foodName) {
         Map<String, Object> chatMap = new HashMap<>();
 
@@ -279,50 +279,4 @@ public class MealDetailFragment extends Fragment {
                 .addOnSuccessListener(aVoid -> Log.d("Chat", "Chat room created!"));
     }
 
-    // From Left: Quantity Update
-    private void updateMealCollection() {
-        if (meal == null || meal.getMealId() == null) {
-            Toast.makeText(getContext(), "Meal data not available.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        db.runTransaction(transaction -> {
-            DocumentSnapshot snapshot = transaction.get(db.collection("meals").document(meal.getMealId()));
-
-            String qtyStr = snapshot.getString("quantity");
-            if (qtyStr == null || qtyStr.isEmpty()) {
-                throw new FirebaseFirestoreException("Quantity not set",
-                        FirebaseFirestoreException.Code.ABORTED);
-            }
-
-            int currentQty = Integer.parseInt(qtyStr);
-            if (currentQty <= 0) {
-                throw new FirebaseFirestoreException("No more meals available",
-                        FirebaseFirestoreException.Code.ABORTED);
-            }
-
-            int newQty = currentQty - 1;
-            transaction.update(db.collection("meals").document(meal.getMealId()),
-                    "quantity", String.valueOf(newQty));
-
-            if (newQty == 0) {
-                transaction.update(db.collection("meals").document(meal.getMealId()),
-                        "status", "Reserved");
-            }
-
-            return newQty;
-        }).addOnSuccessListener(newQty -> {
-            Toast.makeText(getContext(), "Quantity updated to " + newQty, Toast.LENGTH_SHORT).show();
-            meal.setQuantity(String.valueOf(newQty));
-            if (newQty == 0) {
-                meal.setStatus("Reserved");
-                TextView qtyTv = getView().findViewById(R.id.detail_quantity);
-                if (qtyTv != null) {
-                    qtyTv.setText("0 available, all meals reserved");
-                }
-            }
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Failed to update: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        });
-    }
 }
