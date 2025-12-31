@@ -49,6 +49,7 @@ public class MealAdapter extends RecyclerView.Adapter<MealAdapter.MealViewHolder
 
         holder.foodName.setText(meal.getFoodName());
         holder.quantity.setText(meal.getQuantity() + " available");
+        holder.requestedFood.setText("(" + meal.getRequestedQuantity() + " requested)"); // Update requested food
         holder.location.setText(meal.getLocation()); // You might want to shorten this string
 
         // Load Image using Glide
@@ -77,13 +78,14 @@ public class MealAdapter extends RecyclerView.Adapter<MealAdapter.MealViewHolder
     }
 
     public static class MealViewHolder extends RecyclerView.ViewHolder {
-        TextView foodName, quantity, location;
+        TextView foodName, quantity, location, requestedFood; // Add requestedFood
         ImageView foodImage;
 
         public MealViewHolder(@NonNull View itemView) {
             super(itemView);
             foodName = itemView.findViewById(R.id.tv_food_name);
             quantity = itemView.findViewById(R.id.tv_quantity);
+            requestedFood = itemView.findViewById(R.id.tv_requested_food); // Find requested food view
             location = itemView.findViewById(R.id.tv_location);
             foodImage = itemView.findViewById(R.id.iv_food_image);
         }

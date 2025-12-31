@@ -14,6 +14,7 @@ public class Meal implements Serializable {
     private List<String> tags;
     private Date expiryTime; // Changed from Timestamp
     private Date timestamp; // Changed from Timestamp
+    private int requestedQuantity = 0; // New field for tracking requests
 
     public void setExpiryTime(Date expiryTime) {
         this.expiryTime = expiryTime;
@@ -33,6 +34,7 @@ public class Meal implements Serializable {
     // Empty constructor is REQUIRED for Firebase
     public Meal() {
         this.status = "Available"; // Default status
+        this.requestedQuantity = 0;
     }
 
     public Meal(String foodName, String description, String quantity, String location,
@@ -50,6 +52,7 @@ public class Meal implements Serializable {
         this.donorId = donorId;
         this.status = "Available";
         this.receiverId = null;
+        this.requestedQuantity = 0;
     }
 
     // Getters are REQUIRED for Firebase
@@ -102,6 +105,10 @@ public class Meal implements Serializable {
         return donorId;
     }
 
+    public int getRequestedQuantity() {
+        return requestedQuantity;
+    }
+
     // Setters (Added for flexibility)
     public void setStatus(String status) {
         this.status = status;
@@ -149,5 +156,9 @@ public class Meal implements Serializable {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public void setRequestedQuantity(int requestedQuantity) {
+        this.requestedQuantity = requestedQuantity;
     }
 }

@@ -90,15 +90,40 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.ViewHo
             return;
         }
 
-        db.collection("requests").document(requestId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
+        // We need to fetch the request first to get the mealId, so we can decrement requestedQuantity
+        db.collection("requests").document(requestId).get().addOnSuccessListener(requestSnap -> {
+            if (requestSnap.exists()) {
+                String mealId = requestSnap.getString("mealId");
+                String status = requestSnap.getString("status");
+
+                // Only decrement requestedQuantity if the request was PENDING (not yet completed)
+                // If it was Completed, the requestedQuantity was already decremented during confirmation
+                boolean shouldDecrement = "Pending".equals(status) || "Accepted".equals(status);
+
+                db.collection("requests").document(requestId).delete().addOnSuccessListener(aVoid -> {
                     Toast.makeText(context, "Request Removed", Toast.LENGTH_SHORT).show();
-                    // No need to manually remove from list; SnapshotListener in Fragment handles it
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(context, "Error deleting: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    
+                    if (shouldDecrement && mealId != null) {
+                        decrementRequestedQuantity(mealId);
+                    }
                 });
+            } else {
+                // Just try to delete if snapshot failed
+                 db.collection("requests").document(requestId).delete();
+            }
+        });
+    }
+    
+    private void decrementRequestedQuantity(String mealId) {
+        DocumentReference mealRef = db.collection("meals").document(mealId);
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(mealRef);
+            Long currentReqQty = snapshot.getLong("requestedQuantity");
+            if (currentReqQty != null && currentReqQty > 0) {
+                transaction.update(mealRef, "requestedQuantity", currentReqQty - 1);
+            }
+            return null;
+        });
     }
 
     private void confirmHandover(RequestModel request, int position) {
@@ -130,16 +155,22 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.ViewHo
                     currentQty = 0;
                 }
             }
+            
+            Long currentReqQtyLong = mealSnapshot.getLong("requestedQuantity");
+            long currentReqQty = (currentReqQtyLong != null) ? currentReqQtyLong : 0;
 
             if (currentQty <= 0) {
                 throw new FirebaseFirestoreException("Out of stock!", FirebaseFirestoreException.Code.ABORTED);
             }
 
             long newQty = currentQty - 1;
+            long newReqQty = (currentReqQty > 0) ? currentReqQty - 1 : 0;
+            
             transaction.update(mealRef, "quantity", String.valueOf(newQty));
+            transaction.update(mealRef, "requestedQuantity", newReqQty); // Decrement requested count too
             transaction.update(requestRef, "status", "Completed");
 
-            // 🔥 FIX: Mark as Out of Stock if quantity hits 0
+            // FIX: Mark as Out of Stock if quantity hits 0
             if (newQty == 0) {
                 transaction.update(mealRef, "status", "Out of stock");
             }

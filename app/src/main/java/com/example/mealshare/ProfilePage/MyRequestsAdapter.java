@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.mealshare.FeedbackFragment;
 import com.example.mealshare.R;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore; // Import Firestore
 
 import java.util.List;
@@ -66,6 +68,7 @@ public class MyRequestsAdapter extends RecyclerView.Adapter<MyRequestsAdapter.Vi
             // IF DONE: Show Delete Button
             holder.deleteBtn.setVisibility(View.VISIBLE);
             holder.feedbackBtn.setVisibility(View.VISIBLE);
+            holder.deleteBtn.setImageResource(android.R.drawable.ic_menu_delete); // Reset to trash icon
 
             // Set Text
             if ("Completed".equals(status)) {
@@ -98,7 +101,7 @@ public class MyRequestsAdapter extends RecyclerView.Adapter<MyRequestsAdapter.Vi
             }
 
             // Set Delete Action
-            holder.deleteBtn.setOnClickListener(v -> deleteRequest(request.getRequestId()));
+            holder.deleteBtn.setOnClickListener(v -> deleteRequest(request.getRequestId(), false, null));
             holder.feedbackBtn.setOnClickListener(v -> {
                 // Use the listener to pass the donorId
                 if (feedbackListener != null && request.getDonorId() != null) {
@@ -108,32 +111,55 @@ public class MyRequestsAdapter extends RecyclerView.Adapter<MyRequestsAdapter.Vi
 
 
         } else {
-            // IF ACTIVE: Hide Delete Button
-            holder.deleteBtn.setVisibility(View.GONE);
+            // IF ACTIVE:
             holder.feedbackBtn.setVisibility(View.GONE);
 
             if ("Pending".equals(status)) {
                 holder.statusTv.setText("Pending");
                 holder.statusTv.setBackgroundColor(Color.parseColor("#FF9800"));
+
+                // Show Cancel Button (reusing delete button)
+                holder.deleteBtn.setVisibility(View.VISIBLE);
+                holder.deleteBtn.setImageResource(android.R.drawable.ic_menu_close_clear_cancel); // Change to X icon
+                holder.deleteBtn.setOnClickListener(v -> deleteRequest(request.getRequestId(), true, request.getMealId()));
+
             } else if ("Accepted".equals(status)) {
                 holder.statusTv.setText("Ready! ✅");
                 holder.statusTv.setBackgroundColor(Color.parseColor("#4CAF50"));
+                holder.deleteBtn.setVisibility(View.GONE);
             }
         }
     }
 
     // 🔥 Helper Method to Delete
-    private void deleteRequest(String requestId) {
+    private void deleteRequest(String requestId, boolean isCancel, String mealId) {
         if (requestId == null) return;
 
         db.collection("requests").document(requestId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(context, "Request History Removed", Toast.LENGTH_SHORT).show();
+                    String msg = isCancel ? "Request Cancelled" : "Request History Removed";
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                    
+                    if (isCancel && mealId != null) {
+                        decrementRequestedQuantity(mealId);
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(context, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+    
+    private void decrementRequestedQuantity(String mealId) {
+        DocumentReference mealRef = db.collection("meals").document(mealId);
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(mealRef);
+            Long currentReqQty = snapshot.getLong("requestedQuantity");
+            if (currentReqQty != null && currentReqQty > 0) {
+                transaction.update(mealRef, "requestedQuantity", currentReqQty - 1);
+            }
+            return null;
+        });
     }
 
     private OnFeedbackButtonClickListener feedbackListener; // Add this
