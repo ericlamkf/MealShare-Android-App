@@ -39,14 +39,29 @@
                 android:textSize="16sp"
                 android:layout_marginTop="8dp"/>
 
-            <TextView
-                android:id="@+id/detail_quantity"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="5 packs available"
-                android:background="@drawable/corner_radius"
-                android:padding="8dp"
-                android:layout_marginTop="16dp"/>
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:id="@+id/detail_quantity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="5 packs available"
+                    android:background="@drawable/corner_radius"
+                    android:padding="8dp"/>
+
+                <TextView
+                    android:id="@+id/detail_requested_quantity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="(0 requested)"
+                    android:background="@drawable/corner_radius"
+                    android:padding="8dp"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -106,6 +121,17 @@
                 android:text="Request Food"
                 android:textColor="@color/black"
                 android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_cancel_request"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:backgroundTint="#FF5252"
+                android:text="Cancel Request"
+                android:textColor="@color/white"
+                android:visibility="gone"
+                android:enabled="false" />
 
             <ImageButton
                 android:id="@+id/btn_back"

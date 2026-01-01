@@ -8,17 +8,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider; // REQUIRED
-import androidx.lifecycle.Observer; // REQUIRED
-
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +17,16 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.Observer;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -120,7 +119,15 @@ public class AddFragment extends Fragment {
         chipGroupTags = view.findViewById(R.id.chip_group_tags);
         postListingButton = view.findViewById(R.id.btn_post_listing);
 
-        // 4. IMAGE & PERMISSION LAUNCHERS
+        // 4. QUANTITY BUTTONS
+        Button btnMinus = view.findViewById(R.id.btn_minus);
+        Button btnPlus = view.findViewById(R.id.btn_plus);
+
+        btnMinus.setOnClickListener(v -> updateQuantity(-1));
+        btnPlus.setOnClickListener(v -> updateQuantity(1));
+
+
+        // 5. IMAGE & PERMISSION LAUNCHERS
         requestPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
@@ -153,17 +160,32 @@ public class AddFragment extends Fragment {
         photoUploadContainer.setOnClickListener(v -> openGallery());
         imagePreview.setOnClickListener(v -> openGallery());
 
-        // 5. REMOVE BUTTON LOGIC
+        // 6. REMOVE BUTTON LOGIC
         removeBTN = view.findViewById(R.id.removeBTN);
         removeBTN.setVisibility(View.GONE);
         removeBTN.setOnClickListener(v -> resetImage());
 
-        // 6. EXPIRY TIME PICKER
+        // 7. EXPIRY TIME PICKER
         expiryCalendar = Calendar.getInstance();
         et_expiry_time.setOnClickListener(v -> showDatePicker());
 
-        // 7. POST LISTING
+        // 8. POST LISTING
         postListingButton.setOnClickListener(v -> postListing());
+    }
+
+    private void updateQuantity(int change) {
+        String currentText = quantityEditText.getText().toString();
+        int quantity = 0;
+        if (!currentText.isEmpty()) {
+            try {
+                quantity = Integer.parseInt(currentText);
+            } catch (NumberFormatException e) {
+                quantity = 0;
+            }
+        }
+        quantity += change;
+        if (quantity < 0) quantity = 0;
+        quantityEditText.setText(String.valueOf(quantity));
     }
 
     private void postListing() {

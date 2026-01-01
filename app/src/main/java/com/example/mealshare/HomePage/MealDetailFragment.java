@@ -20,9 +20,11 @@ import com.bumptech.glide.Glide;
 import com.example.mealshare.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,9 +35,8 @@ public class MealDetailFragment extends Fragment {
     private Meal meal;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
-    private Button btnRequest;
-
-    private TextView donorNameTv, donorPhoneTv, donorRateTv;
+    private Button btnRequest, btnCancelRequest;
+    private TextView donorNameTv, donorPhoneTv, donorRateTv, requestedQtyTv;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -60,22 +61,24 @@ public class MealDetailFragment extends Fragment {
         ImageButton backButton = view.findViewById(R.id.btn_back);
         backButton.setOnClickListener(v -> requireActivity().onBackPressed());
 
+        // Initialize Views
         ImageView imageView = view.findViewById(R.id.detail_image);
         TextView nameTv = view.findViewById(R.id.detail_food_name);
         TextView locTv = view.findViewById(R.id.detail_location);
         TextView qtyTv = view.findViewById(R.id.detail_quantity);
+        requestedQtyTv = view.findViewById(R.id.detail_requested_quantity);
         TextView descTv = view.findViewById(R.id.detail_description);
-
         donorNameTv = view.findViewById(R.id.detail_donor_name);
         donorPhoneTv = view.findViewById(R.id.detail_donor_phone);
-        donorRateTv = view.findViewById(R.id.donor_feedback); // From Left
-
+        donorRateTv = view.findViewById(R.id.donor_feedback);
         btnRequest = view.findViewById(R.id.btn_request);
+        btnCancelRequest = view.findViewById(R.id.btn_cancel_request);
 
         if (meal != null) {
             nameTv.setText(meal.getFoodName());
             locTv.setText("📍 " + meal.getLocation());
             qtyTv.setText(meal.getQuantity() + " available");
+            requestedQtyTv.setText("(" + meal.getRequestedQuantity() + " requested)");
             descTv.setText(meal.getDescription());
 
             if (meal.getImageUrl() != null) {
@@ -87,11 +90,33 @@ public class MealDetailFragment extends Fragment {
             if (mAuth.getCurrentUser() != null) {
                 checkExistingRequest();
             }
+
+            checkStockAvailability();
         }
 
         btnRequest.setOnClickListener(v -> sendRequestToFirestore());
+        btnCancelRequest.setOnClickListener(v -> cancelRequest());
     }
 
+    // 1. Logic to check if user can request (based on stock vs requested count)
+    private void checkStockAvailability() {
+        if (meal == null || getContext() == null) return;
+        int currentQty = 0;
+        try {
+            currentQty = Integer.parseInt(meal.getQuantity());
+        } catch (NumberFormatException e) { /* default 0 */ }
+
+        // If requested count meets or exceeds actual quantity, disable request button
+        if (currentQty <= 0 || meal.getRequestedQuantity() >= currentQty || "Out of stock".equalsIgnoreCase(meal.getStatus())) {
+            btnRequest.setText("Out of Stock");
+            btnRequest.setEnabled(false);
+            btnRequest.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), android.R.color.darker_gray));
+            // Remove listener so they can't click
+            btnRequest.setOnClickListener(null);
+        }
+    }
+
+    // 2. Logic to fetch donor details + ratings
     private void fetchDonorDetails(String donorId) {
         if (donorId == null || donorId.isEmpty()) {
             donorNameTv.setText("Unknown Donor");
@@ -102,46 +127,27 @@ public class MealDetailFragment extends Fragment {
         db.collection("users").document(donorId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        // Get Name
                         String name = documentSnapshot.getString("name");
-                        if (name != null && !name.isEmpty()) {
-                            donorNameTv.setText("👤 Donor: " + name);
-                        } else {
-                            donorNameTv.setText("👤 Donor: Anonymous");
-                        }
+                        donorNameTv.setText(name != null && !name.isEmpty() ? "👤 Donor: " + name : "👤 Donor: Anonymous");
 
-                        // Get Phone
                         String phone = documentSnapshot.getString("phone");
-                        if (phone != null && !phone.isEmpty()) {
-                            donorPhoneTv.setText("📞 Contact: " + phone);
-                        } else {
-                            donorPhoneTv.setText("📞 Contact: Phone number not filled");
-                        }
+                        donorPhoneTv.setText(phone != null && !phone.isEmpty() ? "📞 Contact: " + phone : "📞 Contact: Phone number not filled");
 
-                        // ⭐ Fetch rating info safely (From Left File)
+                        // Safe Rating Fetch
                         Long highestRating = documentSnapshot.getLong("highestRating");
                         Long highestRatingCount = documentSnapshot.getLong("highestRatingCount");
 
-                        if (highestRating == null || highestRatingCount == null) {
-                            donorRateTv.setText("⭐ This user does not have a rating yet");
-                            return;
-                        }
-
-                        if (highestRating == 0 || highestRatingCount == 0) {
+                        if (highestRating == null || highestRatingCount == null || highestRatingCount == 0) {
                             donorRateTv.setText("⭐ Rating: 0 (0 reviews)");
                         } else {
-                            donorRateTv.setText(
-                                    "⭐ " + highestRating + " stars (" + highestRatingCount + " reviews)"
-                            );
+                            donorRateTv.setText("⭐ " + highestRating + " stars (" + highestRatingCount + " reviews)");
                         }
                     }
                 })
-                .addOnFailureListener(e -> {
-                    donorNameTv.setText("Error loading donor info");
-                    donorRateTv.setText("⭐ Rating unavailable");
-                });
+                .addOnFailureListener(e -> donorNameTv.setText("Error loading donor info"));
     }
 
+    // 3. Logic to check if user ALREADY requested this meal
     private void checkExistingRequest() {
         if (mAuth.getCurrentUser() == null || meal == null) return;
         if (meal.getMealId() == null) return;
@@ -154,22 +160,14 @@ public class MealDetailFragment extends Fragment {
                 .addSnapshotListener((queryDocumentSnapshots, e) -> {
                     if (e != null) return;
 
-                    if (queryDocumentSnapshots != null) {
-                        String activeStatus = null;
-
-                        for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                            String status = doc.getString("status");
-                            if ("Pending".equals(status) || "Accepted".equals(status)) {
-                                activeStatus = status;
-                                break;
-                            }
-                        }
-
-                        if (activeStatus != null) {
-                            updateButtonUI(activeStatus);
-                        } else {
-                            resetButtonUI();
-                        }
+                    if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                        // Found a request! Check its status.
+                        DocumentSnapshot doc = queryDocumentSnapshots.getDocuments().get(0);
+                        String status = doc.getString("status");
+                        updateButtonUI(status);
+                    } else {
+                        // No request found, reset UI to default
+                        resetButtonUI();
                     }
                 });
     }
@@ -177,54 +175,112 @@ public class MealDetailFragment extends Fragment {
     private void resetButtonUI() {
         if (getContext() == null) return;
 
+        // Only reset if stock allows it
+        checkStockAvailability();
+
+        // If checkStockAvailability disabled it, don't re-enable it blindly
+        if (btnRequest.getText().toString().equals("Out of Stock")) return;
+
+        btnRequest.setVisibility(View.VISIBLE);
         btnRequest.setText("Request This Food");
         btnRequest.setEnabled(true);
         btnRequest.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.orange));
         btnRequest.setOnClickListener(v -> sendRequestToFirestore());
+
+        btnCancelRequest.setVisibility(View.GONE);
+        btnCancelRequest.setEnabled(false);
     }
 
     private void updateButtonUI(String status) {
         if (status == null || getContext() == null) return;
 
+        // Default: hide cancel
+        btnCancelRequest.setVisibility(View.GONE);
+        btnCancelRequest.setEnabled(false);
+
         switch (status) {
             case "Pending":
                 btnRequest.setText("Request Pending");
-                btnRequest.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.yellow_pending));
                 btnRequest.setEnabled(false);
+                btnRequest.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.yellow_pending));
+                // Allow Cancel
+                btnCancelRequest.setVisibility(View.VISIBLE);
+                btnCancelRequest.setEnabled(true);
                 break;
-
             case "Accepted":
                 btnRequest.setText("Request Approved! ✅");
+                btnRequest.setEnabled(false);
                 btnRequest.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_approved));
-                btnRequest.setEnabled(true);
+                // Allow Cancel (if not yet collected)
+                btnCancelRequest.setVisibility(View.VISIBLE);
+                btnCancelRequest.setEnabled(true);
                 break;
-
-            case "Completed":
-                btnRequest.setText("Collected");
-                btnRequest.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), android.R.color.darker_gray));
-                btnRequest.setEnabled(false);
-                break;
-
-            case "Rejected":
-                btnRequest.setText("Request Rejected");
-                btnRequest.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), android.R.color.darker_gray));
-                btnRequest.setEnabled(false);
-                break;
-
             default:
-                btnRequest.setText("Request This Food");
-                btnRequest.setEnabled(true);
+                btnRequest.setText(status);
+                btnRequest.setEnabled(false);
+                btnRequest.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), android.R.color.darker_gray));
+                break;
         }
     }
 
+    // 4. Logic to CANCEL a request (Decrement requestedQuantity)
+    private void cancelRequest() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null || meal == null) return;
+
+        btnCancelRequest.setEnabled(false);
+        btnCancelRequest.setText("Cancelling...");
+
+        db.collection("requests")
+                .whereEqualTo("mealId", meal.getMealId())
+                .whereEqualTo("requesterId", currentUser.getUid())
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        Toast.makeText(getContext(), "Could not find your request.", Toast.LENGTH_SHORT).show();
+                        resetButtonUI();
+                        return;
+                    }
+                    DocumentSnapshot requestDoc = queryDocumentSnapshots.getDocuments().get(0);
+                    String requestId = requestDoc.getId();
+
+                    // Transaction: Delete Request & Decrease 'requestedQuantity' on Meal
+                    DocumentReference mealRef = db.collection("meals").document(meal.getMealId());
+                    DocumentReference requestRef = db.collection("requests").document(requestId);
+
+                    db.runTransaction(transaction -> {
+                        DocumentSnapshot mealSnapshot = transaction.get(mealRef);
+                        Long currentReqQty = mealSnapshot.getLong("requestedQuantity");
+                        if (currentReqQty == null) currentReqQty = 0L;
+
+                        if (currentReqQty > 0) {
+                            transaction.update(mealRef, "requestedQuantity", currentReqQty - 1);
+                        }
+                        transaction.delete(requestRef);
+                        return null;
+                    }).addOnSuccessListener(aVoid -> {
+                        Toast.makeText(getContext(), "Request Cancelled", Toast.LENGTH_SHORT).show();
+
+                        // Update local object to reflect UI change immediately
+                        meal.setRequestedQuantity(meal.getRequestedQuantity() - 1);
+                        requestedQtyTv.setText("(" + meal.getRequestedQuantity() + " requested)");
+
+                        resetButtonUI();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Cancellation failed.", Toast.LENGTH_SHORT).show();
+                        btnCancelRequest.setEnabled(true);
+                        btnCancelRequest.setText("Cancel Request");
+                    });
+                });
+    }
+
+    // 5. Logic to SEND a request (Increment requestedQuantity)
     private void sendRequestToFirestore() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
-
         if (currentUser == null) {
-            Toast.makeText(getContext(), "Please login to request food.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please login.", Toast.LENGTH_SHORT).show();
             return;
         }
-
         if (currentUser.getUid().equals(meal.getUserId())) {
             Toast.makeText(getContext(), "You can't request your own food!", Toast.LENGTH_SHORT).show();
             return;
@@ -233,41 +289,67 @@ public class MealDetailFragment extends Fragment {
         btnRequest.setEnabled(false);
         btnRequest.setText("Sending...");
 
-        Map<String, Object> requestMap = new HashMap<>();
-        requestMap.put("requesterId", currentUser.getUid());
-        requestMap.put("donorId", meal.getUserId());
-        requestMap.put("mealId", meal.getMealId());
-        requestMap.put("foodName", meal.getFoodName());
-        requestMap.put("foodImage", meal.getImageUrl());
-        requestMap.put("location", meal.getLocation());
-        requestMap.put("status", "Pending");
-        requestMap.put("timestamp", System.currentTimeMillis());
+        final DocumentReference mealRef = db.collection("meals").document(meal.getMealId());
 
-        db.collection("requests")
-                .add(requestMap)
-                .addOnSuccessListener(documentReference -> {
-                    String newRequestId = documentReference.getId();
+        // Transaction: Check stock -> Increase 'requestedQuantity' -> Create Request -> Create Chat
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(mealRef);
 
-                    // From Right: Create Chat Room
-                    createChatRoom(newRequestId, currentUser.getUid(), meal.getUserId(), meal.getFoodName());
+            // Check real-time quantity
+            String qtyStr = snapshot.getString("quantity");
+            Long reqQtyLong = snapshot.getLong("requestedQuantity");
+            long currentReqQty = (reqQtyLong != null) ? reqQtyLong : 0;
+            int totalQty = (qtyStr != null) ? Integer.parseInt(qtyStr) : 0;
 
-                    // From Left: Update Quantity
-                    updateMealCollection();
+            if (currentReqQty >= totalQty) {
+                throw new FirebaseFirestoreException("Meal fully requested", FirebaseFirestoreException.Code.ABORTED);
+            }
 
-                    Toast.makeText(getContext(), "Request Sent Successfully!", Toast.LENGTH_SHORT).show();
-                    updateButtonUI("Pending");
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    btnRequest.setEnabled(true);
-                    btnRequest.setText("Request This Food");
-                });
+            // 1. Increment Requested Quantity
+            transaction.update(mealRef, "requestedQuantity", currentReqQty + 1);
+
+            // 2. Prepare Request Data
+            DocumentReference newRequestRef = db.collection("requests").document(); // Generate new ID
+            Map<String, Object> requestMap = new HashMap<>();
+            requestMap.put("requesterId", currentUser.getUid());
+            requestMap.put("donorId", meal.getUserId());
+            requestMap.put("mealId", meal.getMealId());
+            requestMap.put("foodName", meal.getFoodName());
+            requestMap.put("foodImage", meal.getImageUrl());
+            requestMap.put("location", meal.getLocation());
+            requestMap.put("status", "Pending");
+            requestMap.put("timestamp", System.currentTimeMillis());
+
+            transaction.set(newRequestRef, requestMap);
+
+            return newRequestRef.getId(); // Return the new ID for the chat creation
+
+        }).addOnSuccessListener(requestId -> {
+            Toast.makeText(getContext(), "Request Sent!", Toast.LENGTH_SHORT).show();
+
+            // Create Chat Room
+            createChatRoom(requestId, currentUser.getUid(), meal.getUserId(), meal.getFoodName());
+
+            // Update local UI
+            meal.setRequestedQuantity(meal.getRequestedQuantity() + 1);
+            requestedQtyTv.setText("(" + meal.getRequestedQuantity() + " requested)");
+            updateButtonUI("Pending");
+
+        }).addOnFailureListener(e -> {
+            if (e instanceof FirebaseFirestoreException && ((FirebaseFirestoreException) e).getCode() == FirebaseFirestoreException.Code.ABORTED) {
+                Toast.makeText(getContext(), "Sorry, this meal is now fully requested.", Toast.LENGTH_LONG).show();
+                btnRequest.setText("Out of Stock");
+            } else {
+                Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                btnRequest.setEnabled(true);
+                btnRequest.setText("Request This Food");
+            }
+        });
     }
 
-    // From Right: Chat Room Creation
+    // 6. Logic to create Chat Room
     private void createChatRoom(String requestId, String requesterId, String donorId, String foodName) {
         Map<String, Object> chatMap = new HashMap<>();
-
         chatMap.put("participants", Arrays.asList(requesterId, donorId));
         chatMap.put("lastMessage", "Request sent for " + foodName);
         chatMap.put("lastMessageTime", System.currentTimeMillis());
@@ -277,52 +359,5 @@ public class MealDetailFragment extends Fragment {
         db.collection("chats").document(requestId)
                 .set(chatMap)
                 .addOnSuccessListener(aVoid -> Log.d("Chat", "Chat room created!"));
-    }
-
-    // From Left: Quantity Update
-    private void updateMealCollection() {
-        if (meal == null || meal.getMealId() == null) {
-            Toast.makeText(getContext(), "Meal data not available.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        db.runTransaction(transaction -> {
-            DocumentSnapshot snapshot = transaction.get(db.collection("meals").document(meal.getMealId()));
-
-            String qtyStr = snapshot.getString("quantity");
-            if (qtyStr == null || qtyStr.isEmpty()) {
-                throw new FirebaseFirestoreException("Quantity not set",
-                        FirebaseFirestoreException.Code.ABORTED);
-            }
-
-            int currentQty = Integer.parseInt(qtyStr);
-            if (currentQty <= 0) {
-                throw new FirebaseFirestoreException("No more meals available",
-                        FirebaseFirestoreException.Code.ABORTED);
-            }
-
-            int newQty = currentQty - 1;
-            transaction.update(db.collection("meals").document(meal.getMealId()),
-                    "quantity", String.valueOf(newQty));
-
-            if (newQty == 0) {
-                transaction.update(db.collection("meals").document(meal.getMealId()),
-                        "status", "Reserved");
-            }
-
-            return newQty;
-        }).addOnSuccessListener(newQty -> {
-            Toast.makeText(getContext(), "Quantity updated to " + newQty, Toast.LENGTH_SHORT).show();
-            meal.setQuantity(String.valueOf(newQty));
-            if (newQty == 0) {
-                meal.setStatus("Reserved");
-                TextView qtyTv = getView().findViewById(R.id.detail_quantity);
-                if (qtyTv != null) {
-                    qtyTv.setText("0 available, all meals reserved");
-                }
-            }
-        }).addOnFailureListener(e -> {
-            Toast.makeText(getContext(), "Failed to update: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        });
     }
 }
